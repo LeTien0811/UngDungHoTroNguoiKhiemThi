@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
-
 class LogErrorServices {
-  final String message;
-  final String type;
+  LogErrorServices._();
 
-  LogErrorServices(
-      this.message,
-      this.type
-      );
-
-
+  static void showLog({
+    required String where,
+    required String type,
+    required String message,
+  }) {
+    String new_message = "Từ $where. => Kiểu Lỗi $type => Lỗi $message";
+    print(new_message);
+  }
 }

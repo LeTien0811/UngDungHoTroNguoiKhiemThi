@@ -1,62 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
+import 'package:hotronguoikhiemthi_app/util/ai_process.dart';
+import 'package:hotronguoikhiemthi_app/util/main_setup.dart';
 
 class AppStateManager extends ChangeNotifier {
   //trang thai
+  //loading tong
   bool _isLoading = false;
-  bool _hasCameraPermisson = false;
-  bool _hasMicPermisson = false;
 
-  //tts ho tro thong bao bang giong noi cho nguoi khiem thi
+  // trang thai camera và mic
+  bool _hasCameraPermission = false;
+  bool _hasMicPermission = false;
+
+  // trang thai noi
+  bool _isSpeaking = false;
+
+  // ham tien ich
   final FlutterTts _flutterTts = FlutterTts();
+  final AiProcess ai_process = AiProcess();
 
-  // getters
+
+  //getter
   bool get isLoading => _isLoading;
-  bool get hasCameraPermisson => _hasCameraPermisson;
+  bool get hasCameraPermission => _hasCameraPermission;
+  bool get hasMicPermission => _hasMicPermission;
+
 
   void setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  Future<void> initializeSystem() async{
+  Future<void> initializeSystem() async {
+    if(_isLoading) return;
     setLoading(true);
-    await _setUpTTS();
-    await _checkPermissons();
+    try {
+
+      await ai_process.initModel();
+
+      await MainSetup.setUpTTS(_flutterTts);
+      _hasCameraPermission = await MainSetup.checkCameraPermissions(
+        _hasCameraPermission,
+        speak,
+      );
+
+      _hasMicPermission = await MainSetup.checkMicPermissions(
+        _hasMicPermission,
+        speak,
+      );
+
+      notifyListeners();
+    } catch (e) {
+      LogErrorServices.showLog(where: 'state manager => init', type: 'loi khi khoi tao', message: '.loi $e');
+    }
     setLoading(false);
   }
 
-  Future<void> _setUpTTS() async{
-    await _flutterTts.setLanguage('vi-VN');
-    await _flutterTts.setSpeechRate(0.9);
-  }
+  Future<void> speak(String text) async {
+    if(_isLoading) return;
 
-  Future<void> _checkPermissons() async{
-    var cameraStatus = await Permission.camera.status;
-    if(!cameraStatus.isGranted) {
-      cameraStatus =  await Permission.camera.request();
+    if (_isSpeaking) {
+      await _flutterTts.stop();
     }
-
-    var micStatus = await Permission.microphone.status;
-    if(!micStatus.isGranted) {
-      micStatus =  await Permission.microphone.request();
-    }
-
-    _hasCameraPermisson = cameraStatus.isGranted;
-    _hasMicPermisson = micStatus.isGranted;
-
-    if (!_hasCameraPermisson) {
-      await _speak("Ứng dụng cần cấp quyền camera để hoạt động vui lòng cấp quyền camera để sử dụng ứng dụng");
-      openAppSettings();
-    } else {
-      await _speak("Khởi động ứng dụng hoàn tất để sử dụng chứng năng nhận diện vật thể vui lòng vuốt xuống trong màn hình hoặc để sử dụng chức năng nhận diện vật thể và hỏi hãy vuốt lên trong màn hình");
-    }
-    notifyListeners();
-  }
-
-  Future<void> _speak(String text) async {
+    _isSpeaking = true;
     await _flutterTts.speak(text);
+    _isSpeaking = false;
+  }
+
+  @override
+  void dispose() {
+    ai_process.dispose();
+    _flutterTts.stop();
+    super.dispose();
   }
 
 }
