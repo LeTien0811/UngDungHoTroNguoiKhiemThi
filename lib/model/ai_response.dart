@@ -2,20 +2,20 @@ import 'dart:convert';
 
 import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
 
-class AiResponse {
+class AIResponse {
   final String location; // đang ở đâu
   final String purpose;  // để làm gì
   final String action;   // hành động
   final String content;  // nội dung để đọc
 
-  AiResponse({
+  AIResponse({
     required this.location,
     required this.purpose,
     required this.action,
     required this.content,
   });
 
-  factory AiResponse.fromJsonString(String jsonString) {
+  factory AIResponse.fromJsonString(String jsonString) {
     try {
       // Bước 1: Làm sạch chuỗi (AI hay thêm ```json ... ```)
       String cleanJson = jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
@@ -28,7 +28,7 @@ class AiResponse {
 
       final Map<String, dynamic> data = jsonDecode(cleanJson);
 
-      return AiResponse(
+      return AIResponse(
         location: data['location'] ?? 'home',
         purpose: data['purpose'] ?? 'chat',
         action: data['action'] ?? 'NONE',
@@ -36,7 +36,7 @@ class AiResponse {
       );
     } catch (e) {
       LogErrorServices.showLog(where: 'Ai Response -> chuyển json', type: 'chuyển json', message: 'Loi dinh dang $e');
-      return AiResponse(
+      return AIResponse(
         location: 'error',
         purpose: 'error',
         action: 'NONE',

@@ -2,6 +2,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 class MainSetup {
+
   static Future<void> setUpTTS(FlutterTts flutterTts) async{
     await flutterTts.setLanguage('vi-VN');
     await flutterTts.setSpeechRate(0.9);
@@ -17,8 +18,6 @@ class MainSetup {
     if (!hasCameraPermission) {
       await speak("Ứng dụng cần cấp quyền camera để hoạt động vui lòng cấp quyền camera để sử dụng ứng dụng");
       openAppSettings();
-    } else {
-      await speak("Khởi động ứng dụng hoàn tất để sử dụng chứng năng nhận diện vật thể vui lòng vuốt xuống trong màn hình hoặc để sử dụng chức năng nhận diện vật thể và hỏi hãy vuốt lên trong màn hình");
     }
     return hasCameraPermission;
   }
@@ -30,10 +29,8 @@ class MainSetup {
     }
     hasMicPermission = micStatus.isGranted;
     if (!hasMicPermission) {
-      await speak("Ứng dụng cần cấp quyền camera để hoạt động vui lòng cấp quyền camera để sử dụng ứng dụng");
+      await speak("Ứng dụng cần cấp quyền microphone để hoạt động vui lòng cấp quyền camera để sử dụng ứng dụng");
       openAppSettings();
-    } else {
-      await speak("Khởi động ứng dụng hoàn tất để sử dụng chứng năng nhận diện vật thể vui lòng vuốt xuống trong màn hình hoặc để sử dụng chức năng nhận diện vật thể và hỏi hãy vuốt lên trong màn hình");
     }
     return hasMicPermission;
   }

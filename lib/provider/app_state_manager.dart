@@ -1,8 +1,12 @@
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:hotronguoikhiemthi_app/model/ai_response.dart';
+import 'package:hotronguoikhiemthi_app/services/ai_services.dart';
 import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
 import 'package:hotronguoikhiemthi_app/util/ai_process.dart';
 import 'package:hotronguoikhiemthi_app/util/main_setup.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class AppStateManager extends ChangeNotifier {
   //trang thai
@@ -16,9 +20,21 @@ class AppStateManager extends ChangeNotifier {
   // trang thai noi
   bool _isSpeaking = false;
 
+  // trang thai lang nghe
+  bool _isRecordAudio = false;
+
+  // trang thai kich hoat speech
+  bool _isSpeechEnable = false;
+
+  final Queue<String> _speechQueue = Queue<String>();
+
   // ham tien ich
   final FlutterTts _flutterTts = FlutterTts();
-  final AiProcess ai_process = AiProcess();
+  final SpeechToText _speechToText = SpeechToText();
+
+  // ai ho tro
+  final AIProcess aiProcess = AIProcess();
+  late AIServices aiServices;
 
 
   //getter
@@ -37,9 +53,18 @@ class AppStateManager extends ChangeNotifier {
     setLoading(true);
     try {
 
-      await ai_process.initModel();
+      await aiProcess.initModel();
+
+      aiServices = AIServices(aiProcess);
 
       await MainSetup.setUpTTS(_flutterTts);
+
+      _flutterTts.setCompletionHandler(() {
+          _isSpeaking = false;
+          _processSpeechQueue();
+      });
+
+
       _hasCameraPermission = await MainSetup.checkCameraPermissions(
         _hasCameraPermission,
         speak,
@@ -50,6 +75,10 @@ class AppStateManager extends ChangeNotifier {
         speak,
       );
 
+      if(_hasCameraPermission && _hasMicPermission) {
+        _isSpeechEnable = await _speechToText.initialize();
+        await speak("Khởi động ứng dụng hoàn tất để sử dụng chứng năng nhận diện vật thể vui lòng vuốt xuống trong màn hình hoặc để sử dụng chức năng nhận diện vật thể và hỏi hãy vuốt lên trong màn hình");
+      }
       notifyListeners();
     } catch (e) {
       LogErrorServices.showLog(where: 'state manager => init', type: 'loi khi khoi tao', message: '.loi $e');
@@ -57,20 +86,81 @@ class AppStateManager extends ChangeNotifier {
     setLoading(false);
   }
 
-  Future<void> speak(String text) async {
-    if(_isLoading) return;
+  Future<void> speak(String text, {bool priority = false}) async {
+    if(_isLoading || _isRecordAudio) return;
 
-    if (_isSpeaking) {
-      await _flutterTts.stop();
+    if(priority) {
+      // o day neu la thong bao quan trong thi giai quyet hang doi va doc luon
+      await stopSpeaking();
+      _speechQueue.add(text);
+      _processSpeechQueue();
+    } else {
+      // con thong bao eo quan trong thi cho
+      _speechQueue.add(text);
+
+      if (!_isSpeaking) {
+        // neu nhu dang ranh quai chuong thi no se doc ln ko can cho
+        _processSpeechQueue();
+      }
     }
+    return;
+  }
+
+  Future<void> startSpeech() async {
+    if(_isLoading || _isSpeaking) return;
+
+    if(!_isSpeechEnable ) {
+      await speak('MicroPhone chưa được bật vui lòng kiểm tra lại cài đặt', priority: true);
+      return;
+    }
+
+    await stopSpeaking();
+
+    _isRecordAudio = true;
+    notifyListeners();
+    String words = '';
+    await _speechToText.listen(
+      onResult: (result) async{
+        words += result.recognizedWords;
+        if(result.finalResult) {
+          _speechToText.stop();
+          final AIResponse? response =  await aiServices.askAIResponse(words);
+          LogErrorServices.showLog(where: 'APP state', type: 'Xu ly hien thi response tu ai', message: 'Ai tra ve $response');
+        }
+      },
+      localeId: 'vi-VN',
+      listenMode: ListenMode.dictation,
+      partialResults: false,
+      pauseFor: const Duration(seconds: 3)
+    );
+  }
+
+  Future<void> _processSpeechQueue() async{
+    if(_isRecordAudio || _speechQueue.isEmpty) {
+      _isSpeaking = false;
+      return;
+    }
+
+    if(_isSpeaking) return;
+
     _isSpeaking = true;
-    await _flutterTts.speak(text);
+
+    final textToSpeech = _speechQueue.removeFirst();
+    await _flutterTts.speak(textToSpeech);
+    notifyListeners();
+    return;
+  }
+
+  Future<void> stopSpeaking() async {
+    _speechQueue.clear();
+    await _flutterTts.stop();
     _isSpeaking = false;
+    notifyListeners();
   }
 
   @override
   void dispose() {
-    ai_process.dispose();
+    aiProcess.dispose();
     _flutterTts.stop();
     super.dispose();
   }

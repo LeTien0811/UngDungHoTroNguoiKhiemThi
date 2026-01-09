@@ -11,7 +11,6 @@ android {
     ndkVersion = flutter.ndkVersion
 
     aaptOptions {
-        noCompress "bin"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

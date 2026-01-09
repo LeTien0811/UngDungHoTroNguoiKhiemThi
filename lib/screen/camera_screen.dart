@@ -21,7 +21,7 @@ class CameraScreenState extends State<CameraScreen> {
   void initState() {
     super.initState();
     cameraServices = CameraServices(widget.camera, context.read<AppStateManager>().speak);
-
+    cameraServices.startImageStream();
     _initializeFuture = cameraServices.initialize();
   }
 

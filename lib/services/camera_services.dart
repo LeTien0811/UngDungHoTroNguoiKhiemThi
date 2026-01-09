@@ -44,7 +44,7 @@ class CameraServices {
     DeviceOrientation.landscapeRight: 270,
   };
 
-  void _startImageStream() {
+  void startImageStream() {
     _controller!.startImageStream((CameraImage image) {
       if (_isProcessing || _isAutoCapturing) return;
 
@@ -65,10 +65,11 @@ class CameraServices {
     try {
       final XFile image = await _controller!.takePicture();
       final inputImage = InputImage.fromFilePath(image.path);
-
+      final recognizedText = await MlProcess.textRecognizer.processImage(inputImage);
+      LogErrorServices.showLog(where: 'CameraService', type: 'Du lieu tra ve', message: '$recognizedText');
     } catch (e) {
       _isAutoCapturing = false;
-      _startImageStream(); // Thử lại nếu lỗi
+      startImageStream(); // Thử lại nếu lỗi
     }
   }
 

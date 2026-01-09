@@ -1,0 +1,230 @@
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_vision/flutter_vision.dart';
+import 'package:hotronguoikhiemthi_app/provider/app_state_manager.dart';
+import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
+import 'package:provider/provider.dart';
+import 'dart:io'; // Để đọc File
+import 'dart:typed_data'; // Để dùng Uint8List
+import 'dart:ui' as ui; // Để lấy kích thước ảnh (decodeImageFromList)
+
+class YoloCameraScreen extends StatefulWidget {
+  final List<CameraDescription> cameras;
+  const YoloCameraScreen({super.key, required this.cameras});
+
+  @override
+  State<YoloCameraScreen> createState() => _YoloCameraScreenState();
+}
+
+class _YoloCameraScreenState extends State<YoloCameraScreen>
+    with WidgetsBindingObserver {
+  late CameraController controller;
+  late FlutterVision vision;
+  bool isLoaded = false;
+  bool isProcessing = false; // Biến khóa để không bấm liên tục
+  List<Map<String, dynamic>> yoloResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    init();
+  }
+
+  // Quản lý vòng đời camera
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!controller.value.isInitialized) return;
+    if (state == AppLifecycleState.inactive) {
+      controller.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      initCamera();
+    }
+  }
+
+  init() async {
+    // 1. Load Model
+    vision = FlutterVision();
+    await vision.loadYoloModel(
+      // HÃY ĐẢM BẢO BẠN DÙNG MODEL COCO 80 CLASS ĐỂ KHÔNG BỊ LỖI INDEX 90
+      modelPath: 'assets/yolov8n_float32.tflite',
+      labels: 'assets/labels.txt',
+      modelVersion: 'yolov8',
+      quantization: false,
+      numThreads: 2,
+      useGpu: false,
+    );
+
+    // 2. Load Camera
+    await initCamera();
+
+    setState(() {
+      isLoaded = true;
+    });
+
+    // Đọc hướng dẫn
+    if (mounted) {
+      context.read<AppStateManager>().speak(
+        "Chạm vào màn hình để nhận diện vật thể",
+      );
+    }
+  }
+
+  Future<void> initCamera() async {
+    controller = CameraController(
+      widget.cameras[0],
+      ResolutionPreset.high, // Dùng High để ảnh chụp nét nhất có thể
+      enableAudio: false,
+    );
+    await controller.initialize();
+  }
+
+  Future<void> captureAndDetect() async {
+    if (isProcessing) return;
+
+    setState(() {
+      isProcessing = true;
+    });
+
+    try {
+      // 1. Chụp ảnh
+      XFile photo = await controller.takePicture();
+
+      // 2. Chuẩn bị dữ liệu cho YOLO
+      // Đọc file ảnh thành dạng Bytes (Uint8List)
+      File file = File(photo.path);
+      Uint8List imageBytes = await file.readAsBytes();
+
+      // Lấy kích thước ảnh (Chiều cao/Chiều rộng) để truyền vào Model
+      // Dùng hàm decodeImageFromList của Flutter để lấy thông tin nhanh
+      final ui.Image decodedImage = await decodeImageFromList(imageBytes);
+
+      // 3. Gửi cho AI (Sửa lỗi imagePath tại đây)
+      final result = await vision.yoloOnImage(
+        bytesList: imageBytes, // Truyền Bytes thay vì Path
+        imageHeight: decodedImage.height, // Truyền chiều cao
+        imageWidth: decodedImage.width, // Truyền chiều rộng
+        iouThreshold: 0.4,
+        confThreshold: 0.1,
+        classThreshold: 0.5,
+      );
+
+      // 4. Xử lý kết quả
+      if (result.isNotEmpty) {
+        setState(() {
+          yoloResults = result;
+        });
+
+        String detectedItem = result.first['tag'];
+
+        // KIỂM TRA MOUNTED TRƯỚC KHI DÙNG CONTEXT (Sửa lỗi use_build_context_synchronously)
+        if (mounted) {
+          await context.read<AppStateManager>().speak(
+            "Phát hiện có $detectedItem",
+          );
+        }
+      } else {
+        if (mounted) {
+          await context.read<AppStateManager>().speak("Không thấy gì cả");
+        }
+      }
+    } catch (e) {
+      LogErrorServices.showLog(where: 'Yolo camera -> captureAndDetect', type: 'xu ly anh', message: 'loi khi chup va xu ly anh $e');
+      if (mounted) {
+        await context.read<AppStateManager>().speak("Có lỗi xảy ra");
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isLoaded || !controller.value.isInitialized) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // 1. Camera Preview
+          CameraPreview(controller),
+
+          // 2. Vẽ khung kết quả (Nếu có)
+          ...displayBoxesAroundRecognizedObjects(MediaQuery.of(context).size),
+
+          // 3. Lớp cảm ứng toàn màn hình (Gesture)
+          GestureDetector(
+            behavior:
+                HitTestBehavior.translucent, // Bắt sự kiện cả chỗ trong suốt
+            onTap: captureAndDetect, // Chạm là Chụp
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: isProcessing
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 50),
+                        child: Text(
+                          "Chạm để quét",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            backgroundColor: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> displayBoxesAroundRecognizedObjects(Size screen) {
+    if (yoloResults.isEmpty) return [];
+
+    // Lưu ý: Khi chụp ảnh (takePicture), ảnh thường có độ phân giải rất cao (vd: 1920x1080)
+    // Cần tính toán lại tỉ lệ scale cho khớp với màn hình hiển thị
+    // Tuy nhiên với người khiếm thị, việc vẽ khung lệch một chút không quá quan trọng bằng việc đọc đúng.
+    // Tạm thời để logic vẽ cũ:
+    double factorX = screen.width / (640);
+    double factorY = screen.height / (640);
+
+    return yoloResults.map((result) {
+      return Positioned(
+        left: result["box"][0] * factorX,
+        top: result["box"][1] * factorY,
+        width: (result["box"][2] - result["box"][0]) * factorX,
+        height: (result["box"][3] - result["box"][1]) * factorY,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(color: Colors.green, width: 2.0),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    controller.dispose();
+    vision.closeYoloModel();
+    super.dispose();
+  }
+}

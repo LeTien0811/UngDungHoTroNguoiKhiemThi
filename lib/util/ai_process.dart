@@ -4,10 +4,10 @@ import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
 import 'package:mediapipe_genai/io.dart';
 import 'package:path_provider/path_provider.dart';
 
-class AiProcess {
-  LlmInferenceEngine? _engine;
+class AIProcess {
+  LlmInferenceEngine? engine;
 
-  static const String _modelAssetName = 'gemma-2b-it-cpu-int4.bin'; // Tên file trong assets
+  static const String _modelAssetName = 'gemma-2b-it-cpu-int4.bin';
   static const int _maxTokens = 1024;
   static const double _temperature = 0.7;
   static const int _topK = 40;
@@ -23,7 +23,7 @@ class AiProcess {
           cacheDir: tempDir.path,
           topK: _topK
       );
-      _engine = LlmInferenceEngine(options);
+      engine = LlmInferenceEngine(options);
       return;
     } catch (e) {
       LogErrorServices.showLog(where: 'AiProcess -> init', type: 'loi khoi tao', message: 'Loi khoi tao $e');
@@ -52,8 +52,7 @@ class AiProcess {
     return filePath;
   }
 
-
   void dispose() {
-    _engine?.dispose();
+    engine?.dispose();
   }
 }

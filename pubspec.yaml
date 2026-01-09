@@ -14,15 +14,15 @@ dependencies:
   provider: ^6.0.0          # Quản lý trạng thái
   permission_handler: ^11.0.0 # Quản lý quyền Camera/Micro
   flutter_tts: ^3.8.0       # Để thông báo trạng thái bằng giọng nói
-  camera_android_camerax: ^0.6.26+2
-  camera: ^0.11.3
+  camera_android_camerax: ^0.6.26+2 # thu vien camera dang su dung
+  camera: ^0.11.3 # thu vien bo tro
   path_provider: ^2.1.5
   path: ^1.9.1
-  google_mlkit_text_recognition: ^0.15.0
-  opencv_dart: ^2.1.0
-  mediapipe_genai: ^0.0.1
-  flutter_mediapipe: ^0.0.7
+  google_mlkit_text_recognition: ^0.15.0 # ml su dung doc chu trong anh
+  opencv_dart: ^2.1.0 # ml tinh toan do net anh
+  mediapipe_genai: ^0.0.1 # de su dunjg ai
   shared_preferences: ^2.5.4
+  flutter_vision: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -31,5 +31,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/models/
+
