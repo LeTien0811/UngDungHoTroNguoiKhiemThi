@@ -7,6 +7,7 @@ class MlProcess {
 
   static Future<void> ImageToSpeech(InputImage image) async{
     final result = await textRecognizer.processImage(image);
+    // ignore: unused_local_variable
     String fullText = result.text;
   }
 

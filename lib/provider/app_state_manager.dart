@@ -88,18 +88,20 @@ class AppStateManager extends ChangeNotifier {
 
   Future<void> speak(String text, {bool priority = false}) async {
     if(_isLoading || _isRecordAudio) return;
-
+    LogErrorServices.showLog(where: 'state manager => speek', type: 'speek', message: 'gọi nói');
     if(priority) {
       // o day neu la thong bao quan trong thi giai quyet hang doi va doc luon
       await stopSpeaking();
       _speechQueue.add(text);
       _processSpeechQueue();
+      LogErrorServices.showLog(where: 'state manager => speek', type: 'speek', message: ' nói liền');
     } else {
       // con thong bao eo quan trong thi cho
       _speechQueue.add(text);
-
+      LogErrorServices.showLog(where: 'state manager => speek', type: 'speek', message: ' nói sau');
       if (!_isSpeaking) {
         // neu nhu dang ranh quai chuong thi no se doc ln ko can cho
+        LogErrorServices.showLog(where: 'state manager => speek', type: 'speek', message: ' nói liền');
         _processSpeechQueue();
       }
     }
@@ -113,6 +115,8 @@ class AppStateManager extends ChangeNotifier {
       await speak('MicroPhone chưa được bật vui lòng kiểm tra lại cài đặt', priority: true);
       return;
     }
+
+    await speak('Vui lòng nói yêu cầu của bạn', priority: true);
 
     await stopSpeaking();
 
@@ -146,6 +150,7 @@ class AppStateManager extends ChangeNotifier {
     _isSpeaking = true;
 
     final textToSpeech = _speechQueue.removeFirst();
+    LogErrorServices.showLog(where: 'state manager => _processSpeechQueue', type: '_processSpeechQueue', message: ' nói nè');
     await _flutterTts.speak(textToSpeech);
     notifyListeners();
     return;

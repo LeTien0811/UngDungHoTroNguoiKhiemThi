@@ -1,6 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vision/flutter_vision.dart';
+import 'package:flutter/services.dart';
 import 'package:hotronguoikhiemthi_app/provider/app_state_manager.dart';
 import 'package:hotronguoikhiemthi_app/services/log_error_services.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +19,7 @@ class YoloCameraScreen extends StatefulWidget {
 class _YoloCameraScreenState extends State<YoloCameraScreen>
     with WidgetsBindingObserver {
   late CameraController controller;
-  late FlutterVision vision;
+  late Flutte vision;
   bool isLoaded = false;
   bool isProcessing = false; // Biến khóa để không bấm liên tục
   List<Map<String, dynamic>> yoloResults = [];
@@ -44,7 +44,7 @@ class _YoloCameraScreenState extends State<YoloCameraScreen>
 
   init() async {
     // 1. Load Model
-    vision = FlutterVision();
+    vision = FlutterVi();
     await vision.loadYoloModel(
       // HÃY ĐẢM BẢO BẠN DÙNG MODEL COCO 80 CLASS ĐỂ KHÔNG BỊ LỖI INDEX 90
       modelPath: 'assets/yolov8n_float32.tflite',

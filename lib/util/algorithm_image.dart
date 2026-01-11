@@ -4,7 +4,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 
 class AlgorithmImage {
 
-  static void analyzeTextPosition(RecognizedText text, int imgWidth, int imgHeight, Function(String message) onGuidance, Function() triggerAutoCapture) {
+  static void analyzeTextPosition(RecognizedText text, int imgWidth, int imgHeight, Function(String message, {bool priority}) onGuidance, Function() triggerAutoCapture) {
     TextBlock? mainBlock;
     double maxArea = 0;
 
@@ -21,9 +21,11 @@ class AlgorithmImage {
     // Tính tâm của khối chữ
     final Rect box = mainBlock.boundingBox;
     final double textCenterX = box.center.dx;
+    // ignore: unused_local_variable
     final double textCenterY = box.center.dy;
 
     final double screenCenterX = imgWidth / 2;
+    // ignore: unused_local_variable
     final double screenCenterY = imgHeight / 2;
 
     // Tính độ lệch (Delta)
@@ -36,9 +38,9 @@ class AlgorithmImage {
     if (deltaX.abs() < threshold) {
       triggerAutoCapture();
     } else if (deltaX > 0) {
-      onGuidance("Dịch sang phải một chút");
+      onGuidance("Dịch sang phải một chút", priority: false);
     } else {
-      onGuidance("Dịch sang trái một chút");
+      onGuidance("Dịch sang trái một chút", priority: false);
     }
   }
 

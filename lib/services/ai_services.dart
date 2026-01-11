@@ -70,6 +70,7 @@ class AIServices {
                 type: 'Error',
                 message: 'Lỗi khi stream: $err',
               );
+              // ignore: null_argument_to_non_null_type
               if (!completer.isCompleted) completer.complete(null);
             },
           );

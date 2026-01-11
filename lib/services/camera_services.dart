@@ -10,15 +10,14 @@ class CameraServices {
   final CameraDescription camera;
   late CameraController? _controller;
 
-
   bool _isProcessing = false;
   bool _isAutoCapturing = false;
   DateTime _lastScanTime = DateTime.now();
   final int _throttleDuration = 500;
 
-  final Function(String message) onGuidance;
+  final Function(String message, {bool priority}) onGuidance;
 
-  CameraServices(this.camera, this.onGuidance);
+  CameraServices(this.camera, this.onGuidance,);
 
   Future<void> initialize() async {
     _controller = CameraController(
@@ -60,15 +59,19 @@ class CameraServices {
 
   Future<void> _triggerAutoCapture() async {
     _isAutoCapturing = true;
-    onGuidance("Đang chụp, giữ yên...");
+    onGuidance("Đang chụp, giữ yên...", priority: true);
     await _controller!.stopImageStream();
     try {
+      LogErrorServices.showLog(where: 'CameraService', type: 'chụp', message: 'bắt đầu chụp');
       final XFile image = await _controller!.takePicture();
       final inputImage = InputImage.fromFilePath(image.path);
       final recognizedText = await MlProcess.textRecognizer.processImage(inputImage);
-      LogErrorServices.showLog(where: 'CameraService', type: 'Du lieu tra ve', message: '$recognizedText');
+      LogErrorServices.showLog(where: 'CameraService', type: 'Du lieu tra ve', message: '${recognizedText.text.toString()}');
+      onGuidance("Chữ trên sản phẩm ${recognizedText.text.toString()}", priority: true);
+
     } catch (e) {
       _isAutoCapturing = false;
+      LogErrorServices.showLog(where: 'CameraService', type: 'chụp', message: 'lỗi khi chụp $e');
       startImageStream(); // Thử lại nếu lỗi
     }
   }
@@ -78,13 +81,15 @@ class CameraServices {
     _isProcessing = true;
     try {
       double blurScore = AlgorithmImage.calculateBlurScore(image);
-      if (blurScore < 500) {
+      if (blurScore < 15) {
         LogErrorServices.showLog(
           where: 'CameraService',
           type: 'xử lý ảnh',
-          message: 'Ảnh mờ dưới 500',
+          message: 'Ảnh mờ dưới $blurScore',
         );
+        onGuidance("Ảnh mờ vui lòng dữ yên điện thoại hoặc di chuyển để lấy nét", priority: false);
         _isProcessing = false;
+        startImageStream();
         return;
       }
       final inputImage = _inputImageFromCameraImage(image);

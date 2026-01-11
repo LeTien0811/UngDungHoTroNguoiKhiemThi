@@ -6,7 +6,10 @@ class LogErrorServices {
     required String type,
     required String message,
   }) {
-    String new_message = "Từ $where. => Kiểu Lỗi $type => Lỗi $message";
+    String dot = '=========================================================================================>';
+    String new_message = "Bắt Log => Từ $where. => $type => $message";
+    print(dot);
     print(new_message);
+    print(dot);
   }
 }

@@ -6,28 +6,35 @@ import 'package:hotronguoikhiemthi_app/services/camera_services.dart';
 import 'package:provider/provider.dart';
 
 class CameraScreen extends StatefulWidget {
-  final CameraDescription camera;
 
-  const CameraScreen({super.key, required this.camera});
 
   @override
   CameraScreenState createState() => CameraScreenState();
 }
 
 class CameraScreenState extends State<CameraScreen> {
-  late CameraServices cameraServices;
+  late CameraServices? cameraServices;
   late Future<void> _initializeFuture;
+
   @override
   void initState() {
     super.initState();
-    cameraServices = CameraServices(widget.camera, context.read<AppStateManager>().speak);
-    cameraServices.startImageStream();
-    _initializeFuture = cameraServices.initialize();
+    _initializeFuture = initCamera();
+  }
+
+  Future<void> initCamera() async{
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+    cameraServices = CameraServices(firstCamera, context.read<AppStateManager>().speak);
+
+    await cameraServices!.initialize();
+
+    cameraServices!.startImageStream();
   }
 
   @override
   void dispose() {
-    cameraServices.dispose();
+    cameraServices!.dispose();
     super.dispose();
   }
 
@@ -38,11 +45,11 @@ class CameraScreenState extends State<CameraScreen> {
       body: FutureBuilder<void>(
         future: _initializeFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.connectionState == ConnectionState.done && cameraServices != null) {
             return SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: CameraPreview(cameraServices.cameraController),
+              child: CameraPreview(cameraServices!.cameraController),
             );
           } else if (snapshot.hasError) {
             return Center(child: Text("Lỗi camera: ${snapshot.error}"));
