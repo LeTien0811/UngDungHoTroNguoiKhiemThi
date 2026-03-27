@@ -1,7 +1,6 @@
 import 'package:build_access/config/base_model.dart';
 import 'package:build_access/core/utils/camera/image_handle.dart';
 import 'dart:developer' as developer_log;
-import 'package:build_access/enum/config.dart';
 import 'package:build_access/ml/my_text_recognizer.dart';
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/providers/service_provider.dart';

@@ -1,5 +1,4 @@
 import 'package:build_access/config/base_model.dart';
-import 'package:build_access/enum/config.dart';
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/providers/service_provider.dart';
 import 'package:build_access/services/local_ai_engine_service.dart';
@@ -7,7 +6,7 @@ import 'dart:developer' as developer_log;
 
 class ReadingResultViewModel extends BaseModel {
   final ProviderSevice providerSevice = getIt<ProviderSevice>();
-  final LocalEngineService localEngineService = getIt<LocalEngineService>();
+  final LocalAiEngineService localEngineService = getIt<LocalAiEngineService>();
   String rawText = '';
 
   String fullResponse = "";

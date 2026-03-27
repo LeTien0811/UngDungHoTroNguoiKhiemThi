@@ -43,7 +43,9 @@ dependencies:
   google_mlkit_text_recognition: ^0.15.1
   flutter_local_ai: ^0.0.6
   get_it: ^9.2.1
-  flutter_leap_sdk: ^0.2.4
+  llama_cpp_dart: ^0.2.2
+  dio: ^5.9.2
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

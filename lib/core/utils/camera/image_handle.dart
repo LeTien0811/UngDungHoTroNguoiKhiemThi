@@ -65,7 +65,7 @@ class ImageHandle {
 
       double blurScore = ImageAlgorithm.calculateBlurScore(imageFromFrame);
 
-      if (blurScore < 15) {
+      if (blurScore < 35) {
         developer_log.log('Ảnh mờ', name: 'ImageHandle.processImageFromFrame');
         getIt<ProviderSevice>().speakQueue("Ảnh mờ vui lòng dữ yên điện thoại hoặc di chuyển để lấy nét");
         throw ("RECAPTURE");
