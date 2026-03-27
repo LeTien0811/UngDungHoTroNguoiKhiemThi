@@ -24,6 +24,7 @@ class CameraService {
   }
 
   Future<void> init(CameraDescription camera) async {
+    if(controller != null) return;
     controller = CameraController(
       camera,
       ResolutionPreset.medium,

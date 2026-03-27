@@ -3,10 +3,9 @@ import 'package:flutter/cupertino.dart';
 class NavigatorService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  Future navigateTo(String routeName, {Object? arguments}) {
+  Future navigateTo(String routeName) {
     return navigatorKey.currentState!.pushNamed(
       routeName,
-      arguments: arguments,
     );
   }
 

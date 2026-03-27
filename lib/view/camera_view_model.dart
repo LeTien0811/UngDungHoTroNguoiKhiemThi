@@ -20,83 +20,81 @@ class CameraViewModel extends BaseModel {
 
   final int _throttleDuration = 1000;
   DateTime _lastScanTime = DateTime.now();
+  bool _isProcessing = false;
 
   Future<void> initCamera() async {
     await runSafe(() async {
       camera = await cameraService.getFirstCamera();
       await cameraService.init(camera!);
+      notifyListeners();
       await startStream();
+      providerSevice.speakQueue('Bắt đầu quét hãy đưa điện thoại đối diện vật muốn quét');
     }, 'CameraModel.init');
   }
 
   Future<void> startStream() async {
-    if (state == ViewState.busy) {
-      return;
-    }
     await runSafe(() async {
-      if (cameraService.controller!.value.isStreamingImages || camera == null) return;
-      await cameraService.controller!.startImageStream((
-        CameraImage image,
-      ) async {
-        if (DateTime.now().difference(_lastScanTime).inMilliseconds <
-            _throttleDuration) {
+      if (cameraService.controller == null || cameraService.controller!.value.isStreamingImages || camera == null) return;
+
+      await cameraService.controller!.startImageStream((CameraImage image) async {
+        if (_isProcessing || DateTime.now().difference(_lastScanTime).inMilliseconds < _throttleDuration) {
           return;
         }
 
-        try {
-          _lastScanTime = DateTime.now();
+        _isProcessing = true;
+        _lastScanTime = DateTime.now();
 
-         InputImage? inputImage = await _imageHandle.processImageFromFrame(
+        try {
+          InputImage? inputImage = await _imageHandle.processImageFromFrame(
             image,
-            providerSevice.speechQueue as Function(String message),
             camera!,
             cameraService.controller!,
           );
 
-          if(inputImage != null) {
-            throw('RECAPTURE');
+
+          if(inputImage == null) {
+            throw 'RECAPTURE';
           }
 
-          String textScan = await _myTextRecognizer.processImage(inputImage!);
+          String textScan = await _myTextRecognizer.processImage(inputImage);
 
-          NavigatorService().pushNamedAndRemoveUntil(ReadingResultFeatures.routeName, arguments: textScan);
+          if (textScan.trim().isEmpty) {
+            throw 'RECAPTURE';
+          }
+
+          developer_log.log('Đã đọc thành công: $textScan', name: 'CameraViewModel.OCR');
+
+          await stopStream();
+
+          getIt<NavigatorService>().pushNamedAndRemoveUntil(
+              ReadingResultFeatures.routeName,
+              arguments: textScan
+          );
 
         } catch (e) {
           if (e == 'RECAPTURE') {
-            developer_log.log(
-              'Không nhận diện được quét lại: $e',
-              name: 'stream.camera_service',
-            );
-          } else if (e == 'SUCCESS_READING') {
-            await stopStream();
+            developer_log.log('Bỏ qua frame, tiếp tục quét...', name: 'stream.camera_service');
           } else {
-            developer_log.log(
-              'Lỗi luồng Camera: $e',
-              name: 'stream.camera_service',
-            );
-            rethrow;
+            developer_log.log('Lỗi luồng Camera: $e', name: 'stream.camera_service');
           }
         } finally {
-          setState(ViewState.idle);
+          _isProcessing = false;
         }
       });
     }, "CameraViewModel.startStream");
   }
 
   Future<void> stopStream() async {
-    await runSafe(() async {
-      if (cameraService.controller != null &&
-          cameraService.controller!.value.isStreamingImages) {
-        await cameraService.controller!.stopImageStream();
-        return;
-      }
-    }, 'CameraModel.stopStream');
+    if (cameraService.controller != null && cameraService.controller!.value.isStreamingImages) {
+      await cameraService.controller!.stopImageStream();
+    }
   }
 
   @override
   void dispose() {
-    super.dispose();
+    stopStream(); // Đảm bảo luôn tắt stream trước khi hủy
     cameraService.dispose();
     _myTextRecognizer.dispose();
+    super.dispose();
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:build_access/core/utils/device_orientation.dart';
 import 'package:build_access/core/utils/image_algorithm.dart';
+import 'package:build_access/providers/locator.dart';
+import 'package:build_access/providers/service_provider.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -52,7 +54,6 @@ class ImageHandle {
 
   Future<InputImage?> processImageFromFrame(
     CameraImage imageFromFrame,
-    Function(String message) callSpeak,
     CameraDescription camera,
     CameraController controller,
   ) async {
@@ -66,9 +67,7 @@ class ImageHandle {
 
       if (blurScore < 15) {
         developer_log.log('Ảnh mờ', name: 'ImageHandle.processImageFromFrame');
-        callSpeak(
-          "Ảnh mờ vui lòng dữ yên điện thoại hoặc di chuyển để lấy nét",
-        );
+        getIt<ProviderSevice>().speakQueue("Ảnh mờ vui lòng dữ yên điện thoại hoặc di chuyển để lấy nét");
         throw ("RECAPTURE");
       }
 

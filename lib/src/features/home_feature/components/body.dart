@@ -1,3 +1,4 @@
+import 'package:build_access/providers/locator.dart';
 import 'package:build_access/services/navigator_service.dart';
 import 'package:build_access/src/features/camera_feature/camera_features.dart';
 import 'package:build_access/src/features/home_feature/components/derector_text.dart';
@@ -48,7 +49,7 @@ class _BodyState extends State<Body> {
                   if (details.primaryVelocity! < -300) {
                     HapticFeedback.lightImpact();
                     SnackbarUtil.show(context,message:  "Chuyển sang: Đọc Thông Tin", bgColor:  MyColors.actionCyan);
-                    NavigatorService().navigateTo(CameraFeatures.routerName);
+                    getIt<NavigatorService>().navigateTo(CameraFeatures.routerName);
 
                   }
                 },
@@ -87,14 +88,15 @@ class _BodyState extends State<Body> {
                         ),
                       ),
 
-
-                      DerectorText(
+                      // Đưa Positioned ra đây để làm con ruột của Stack
+                      const Positioned(
+                        bottom: 40,
+                        left: 0,
+                        right: 0,
+                        child: DerectorText(
                           text: "Đọc Thông Tin",
                           icon: Icons.keyboard_double_arrow_down_rounded,
-                          bottom: 0,
-                          right: 0,
-                          left: 0,
-                          top: 40,
+                        ),
                       ),
                     ],
                   ),
