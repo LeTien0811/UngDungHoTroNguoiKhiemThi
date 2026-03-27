@@ -1,0 +1,128 @@
+Keyword_Standard,Variants,Category
+Nội dung bắt buộc,noi dung bat buoc|nội dung bắt buộc,CHEM
+Định lượng,d/l|dinh luong|định lượng,ALL
+Ngày sản xuất,mfg|ngay san xuat|ngày sản xuất|nsx,ALL
+Hạn sử dụng,exp|han su dung|hsd|hạn sử dụng,ALL
+Thông tin cảnh báo,thong tin canh bao|thông tin cảnh báo,ALL
+Thành phần,nguyên liệu|t/p|thanh phan|thành phần,ALL
+Thành phần định lượng,thanh phan dinh luong|thành phần định lượng,ALL
+Thông tin,thong tin|thông tin,ALL
+Cảnh báo,canh bao|cảnh báo,ALL
+Hướng dẫn sử dụng,cách dùng|hd sd|hdsd|huong dan su dung|hướng dẫn sử dụng,ALL
+Hướng dẫn bảo quản,huong dan bao quan|hướng dẫn bảo quản,MED
+Giá trị,gia tri|giá trị,FOOD
+Dinh dưỡng,dinh duong|dinh dưỡng,FOOD
+Công bố khuyến cáo về nguy cơ,cong bo khuyen cao ve nguy co|công bố khuyến cáo về nguy cơ,FOOD
+Thực phẩm bảo vệ sức khỏe,thuc pham bao ve suc khoe|thực phẩm bảo vệ sức khỏe,FOOD
+thực phẩm này không phải là thuốc không có tác dụng thay thế thuốc chữa bệnh,thuc pham nay khong phai la thuoc khong co tac dung thay the thuoc chua benh|thực phẩm này không phải là thuốc không có tác dụng thay thế thuốc chữa bệnh,FOOD
+Thực phẩm đã qua chiếu xạ,thuc pham da qua chieu xa|thực phẩm đã qua chiếu xạ,FOOD
+Thực phẩm biến đổi gen,thuc pham bien doi gen|thực phẩm biến đổi gen,FOOD
+biến đổi gen,bien doi gen|biến đổi gen,FOOD
+Hàm lượng,ham luong|hàm lượng,ALL
+Hàm lượng etanol,ham luong etanol|hàm lượng etanol,ALL
+Mã nhận diện lô,ma nhan dien lo|mã nhận diện lô,ALL
+Mã số,ma so|mã số,MED
+Mã vạch,ma vach|mã vạch,MED
+Phụ gia thực phẩm,phu gia thuc pham|phụ gia thực phẩm,FOOD
+Dùng cho thực phẩm,dung cho thuc pham|dùng cho thực phẩm,ALL
+Tên nguyên liệu,ten nguyen lieu|tên nguyên liệu,FOOD
+Bảo quản,bao quan|bảo quản,ALL
+Nồng độ,nong do|nồng độ,MED
+Khối lượng dược chất,khoi luong duoc chat|khối lượng dược chất,MED
+Dược liệu của thuốc,duoc lieu cua thuoc|dược liệu của thuốc,MED
+Nguyên liệu làm thuốc,nguyen lieu lam thuoc|nguyên liệu làm thuốc,MED
+Hạn sử dụng/hạn dùng,han su dung/han dung|hạn sử dụng/hạn dùng,ALL
+Dạng bào chế trừ nguyên liệu làm thuốc,dang bao che tru nguyen lieu lam thuoc|dạng bào chế trừ nguyên liệu làm thuốc,MED
+Quy cách đóng gói,quy cach dong goi|quy cách đóng gói,MED
+Tiêu chuẩn chất lượng,tieu chuan chat luong|tiêu chuẩn chất lượng,MED
+Số đăng ký,so dang ky|số đăng ký,MED
+Số giấy phép nhập khẩu,so giay phep nhap khau|số giấy phép nhập khẩu,MED
+Số lô sản xuất,so lo san xuat|số lô sản xuất,CHEM
+Cảnh báo vệ sinh,canh bao ve sinh|cảnh báo vệ sinh,MED
+An toàn,an toan|an toàn,MED
+Sức khỏe,suc khoe|sức khỏe,MED
+Số lưu hành,so luu hanh|số lưu hành,MED
+Số giấy phép nhập khẩu trang thiết bị y tế,so giay phep nhap khau trang thiet bi y te|số giấy phép nhập khẩu trang thiết bị y tế,MED
+Số lô,so lo|số lô,MED
+Số sê ri,so se ri|số sê ri,MED
+Thiết bị y tế,thiet bi y te|thiết bị y tế,MED
+Thiết bị y tế tiệt trùng,thiet bi y te tiet trung|thiết bị y tế tiệt trùng,MED
+Sử dụng một lần,su dung mot lan|sử dụng một lần,MED
+Thuốc thử,thuoc thu|thuốc thử,MED
+Chất hiệu chuẩn,chat hieu chuan|chất hiệu chuẩn,MED
+Vật liệu kiểm soát,vat lieu kiem soat|vật liệu kiểm soát,MED
+Cơ sở bảo hành,co so bao hanh|cơ sở bảo hành,MED
+hướng dẫn tra cứu,huong dan tra cuu|hướng dẫn tra cứu,MED
+Với những sản phẩm có độ ổn định dưới 30 tháng,voi nhung san pham co do on dinh duoi 30 thang|với những sản phẩm có độ ổn định dưới 30 tháng,CHEM
+Bắt buộc phải ghi ngày hết hạn,bat buoc phai ghi ngay het han|bắt buộc phải ghi ngày hết hạn,CHEM
+Hướng dẫn sử dụng trừ khi dạng trình bày đã,huong dan su dung tru khi dang trinh bay da|hướng dẫn sử dụng trừ khi dạng trình bày đã,CHEM
+Thể hiện rõ cách sử dụng của sản phẩm,the hien ro cach su dung cua san pham|thể hiện rõ cách sử dụng của sản phẩm,CHEM
+Hàm lượng hoạt chất,ham luong hoat chat|hàm lượng hoạt chất,CHEM
+Số đăng ký lưu hành tại việt nam,so dang ky luu hanh tai viet nam|số đăng ký lưu hành tại việt nam,CHEM
+Số điện thoại,so dien thoai|số điện thoại,ALL
+Thành phần hàm lượng,thanh phan ham luong|thành phần hàm lượng,MED
+Địa chỉ của cơ sở sản xuất,dia chi cua co so san xuat|địa chỉ của cơ sở sản xuất,ALL
+Số lượng giống thủy sản,so luong giong thuy san|số lượng giống thủy sản,ALL
+Chỉ tiêu chất lượng ,chi tieu chat luong|chỉ tiêu chất lượng,ALL
+Ngày xuất bản,ngay xuat ban|ngày xuất bản,ALL
+Thời hạn sử dụng,thoi han su dung|thời hạn sử dụng,ALL
+Hướng dẫn vận chuyển,huong dan van chuyen|hướng dẫn vận chuyển,ALL
+Sử dụng,su dung|sử dụng,ALL
+Thông số kỹ thuật,thong so ky thuat|thông số kỹ thuật,ALL
+Năm sản xuất,nam san xuat|năm sản xuất,ALL
+Tháng sản xuất,thang san xuat|tháng sản xuất,ALL
+Nhà xuất bản,nha xuat ban|nhà xuất bản,FOOD
+Nhà in,nha in|nhà in,FOOD
+Tên tác giả,ten tac gia|tên tác giả,FOOD
+Dịch giả,dich gia|dịch giả,FOOD
+Giấy phép xuất bản,giay phep xuat ban|giấy phép xuất bản,FOOD
+Khối lượng,khoi luong|khối lượng,ALL
+Khối lượng vật gắn,khoi luong vat gan|khối lượng vật gắn,ALL
+Mã ký hiệu sản phẩm,ma ky hieu san pham|mã ký hiệu sản phẩm,ALL
+sản phẩm tân trang làm mới,san pham tan trang lam moi|sản phẩm tân trang làm mới,ALL
+Thông tin cảnh báo an toàn,thong tin canh bao an toan|thông tin cảnh báo an toàn,ALL
+Tên nhà sản xuất,ten nha san xuat|tên nhà sản xuất,ALL
+Nhãn hiệu,nhan hieu|nhãn hiệu,ALL
+Tên thương mại,ten thuong mai|tên thương mại,ALL
+Mã,ma|mã,ALL
+Kiểu loại,kieu loai|kiểu loại,ALL
+Số khung,so khung|số khung,ALL
+Số vin,so vin|số vin,ALL
+Khối lượng bản thân,khoi luong ban than|khối lượng bản thân,ALL
+Số người cho phép chở,so nguoi cho phep cho|số người cho phép chở,ALL
+Khối lượng toàn bộ thiết kế,khoi luong toan bo thiet ke|khối lượng toàn bộ thiết kế,ALL
+Số chứng nhận phê duyệt kiểu,so chung nhan phe duyet kieu|số chứng nhận phê duyệt kiểu,ALL
+Dung tích xi lanh,dung tich xi lanh|dung tích xi lanh,ALL
+Thông số kỹ thuật đặc trưng,thong so ky thuat dac trung|thông số kỹ thuật đặc trưng,ALL
+Thông số kỹ thuật cơ bản,thong so ky thuat co ban|thông số kỹ thuật cơ bản,ALL
+Mã phụ tùng,ma phu tung|mã phụ tùng,ALL
+Mã nhận dạng hóa chất,ma nhan dang hoa chat|mã nhận dạng hóa chất,CHEM
+Hình đồ cảnh báo,hinh do canh bao|hình đồ cảnh báo,CHEM
+Từ cảnh báo,tu canh bao|từ cảnh báo,CHEM
+Cảnh báo nguy cơ,canh bao nguy co|cảnh báo nguy cơ,CHEM
+Biện pháp phòng ngừa,bien phap phong ngua|biện pháp phòng ngừa,CHEM
+Cỡ mũ,co mu|cỡ mũ,ALL
+Tháng,thang|tháng,ALL
+Kiểu mũ,kieu mu|kiểu mũ,ALL
+mũ bảo hiểm dùng cho người đi mô tô xe máy,mu bao hiem dung cho nguoi di mo to xe may|mũ bảo hiểm dùng cho người đi mô tô xe máy,ALL
+Loại model,loai model|loại model,ALL
+Tự trọng (khối lượng bản thân),tu trong (khoi luong ban than)|tự trọng (khối lượng bản thân),ALL
+Công dụng,cong dung|công dụng,MED
+Bác sĩ tư vấn,bac si tu van|bác sĩ tư vấn,MED
+Đối tượng sử dụng,doi tuong su dung|đối tượng sử dụng,ALL
+Tác dụng phụ,tac dung phu|tác dụng phụ,MED
+Phụ liệu,phu lieu|phụ liệu,MED
+Số tiếp nhận đkbcb,so tiep nhan dkbcb|số tiếp nhận đkbcb,MED
+Xuất xứ và thương nhân chịu trách nhiệm sản phẩm,xuat xu va thuong nhan chiu trach nhiem san pham|xuất xứ và thương nhân chịu trách nhiệm sản phẩm,MED
+Xuất xứ,xuat xu|xuất xứ,ALL
+Khối lượng 1 viên,khoi luong 1 vien|khối lượng 1 viên,MED
+Chỉ định,chi dinh|chỉ định,MED
+Chống chỉ định,chong chi dinh|chống chỉ định,MED
+Cách dùng,cach dung|cách dùng,MED
+Liều dùng,lieu dung|liều dùng,MED
+Tiêu chuẩn,tieu chuan|tiêu chuẩn,ALL
+Để xa tầm tay trẻ em,de xa tam tay tre em|để xa tầm tay trẻ em,ALL
+Đọc kỹ hướng dẫn sử dụng trước khi dùng,doc ky huong dan su dung truoc khi dung|đọc kỹ hướng dẫn sử dụng trước khi dùng,ALL
+Thận trọng khi dùng thuốc,than trong khi dung thuoc|thận trọng khi dùng thuốc,MED
+Tác dụng không mong muốn,tac dung khong mong muon|tác dụng không mong muốn,MED
+Công thức bào chế 01 viên nén bao phim,cong thuc bao che 01 vien nen bao phim|công thức bào chế 01 viên nén bao phim,MED
