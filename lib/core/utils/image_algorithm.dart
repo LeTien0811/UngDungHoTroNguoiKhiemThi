@@ -1,14 +1,16 @@
+import 'package:build_access/providers/locator.dart';
+import 'package:build_access/providers/service_provider.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ImageAlgorithm {
-  static void analyzeTextPosition(
+  final ProviderSevice providerService = getIt<ProviderSevice>();
+  String analyzeTextPosition(
     RecognizedText text,
     int imgWidth,
     int imgHeight,
     int rotation,
-    Function(String message) callSpeak,
   ) {
     try {
       if (text.blocks.isEmpty) throw ("RECAPTURE");
@@ -36,7 +38,7 @@ class ImageAlgorithm {
       final double ratio = area / (imgWidth * imgHeight).toDouble();
 
       if (ratio < 0.01) {
-        callSpeak('Vui lòng đưa máy lại gần văn bản hơn');
+        providerService.speakQueue('Vui lòng đưa máy lại gần văn bản hơn');
         throw ("RECAPTURE");
       }
 
@@ -66,9 +68,7 @@ class ImageAlgorithm {
         }
 
         String cleanText = finalStructuredText.toString().trim();
-
-        callSpeak(cleanText);
-        throw ('SUCCESS_READING');
+        return cleanText;
       } else {
         String command = "";
         if (deltaX.abs() > deltaY.abs()) {
@@ -84,7 +84,7 @@ class ImageAlgorithm {
             command = deltaY > 0 ? "Dịch sang phải" : "Dịch sang trái";
           }
         }
-        callSpeak(command);
+        providerService.speakQueue(command);
         throw ("RECAPTURE");
       }
     } catch (e) {

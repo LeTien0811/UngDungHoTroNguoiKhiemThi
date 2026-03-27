@@ -4,14 +4,13 @@ import 'dart:developer' as developer_log;
 
 class MyTextRecognizer {
   final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-
-  Future<void> processImage(InputImage inputImage, Function(String mess) callSpeak) async {
+  Future<String> processImage(InputImage inputImage) async {
     try {
       final recognizedText = await textRecognizer.processImage(inputImage);
 
       developer_log.log('is text last recognized: ${recognizedText.text}', name: 'processImage.MyTextRecognizer');
       final metadata = inputImage.metadata;
-      if(metadata == null) return;
+      if(metadata == null) throw("RECAPTURE");
 
       int rotationDegrees = 0;
       switch(metadata.rotation) {
@@ -21,13 +20,13 @@ class MyTextRecognizer {
         default: break;
       }
 
-      ImageAlgorithm.analyzeTextPosition(
+      String cleanText = ImageAlgorithm().analyzeTextPosition(
           recognizedText,
           metadata.size.width.toInt(),
           metadata.size.height.toInt(),
           rotationDegrees,
-          callSpeak,
       );
+      return cleanText;
     } catch (e) {
       rethrow;
     }

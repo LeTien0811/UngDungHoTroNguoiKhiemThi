@@ -1,15 +1,12 @@
 import 'dart:io';
 import 'package:build_access/core/utils/device_orientation.dart';
 import 'package:build_access/core/utils/image_algorithm.dart';
-import 'package:build_access/ml/my_text_recognizer.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:developer' as developer_log;
 
 class ImageHandle {
-  final MyTextRecognizer _myTextRecognizer = MyTextRecognizer();
-
   InputImage? _inputImageFromCameraImage(
     CameraImage image,
     CameraDescription camera,
@@ -53,7 +50,7 @@ class ImageHandle {
     );
   }
 
-  Future<void> processImageFromFrame(
+  Future<InputImage?> processImageFromFrame(
     CameraImage imageFromFrame,
     Function(String message) callSpeak,
     CameraDescription camera,
@@ -75,7 +72,7 @@ class ImageHandle {
         throw ("RECAPTURE");
       }
 
-      final inputImage = _inputImageFromCameraImage(
+      InputImage? inputImage = _inputImageFromCameraImage(
         imageFromFrame,
         camera,
         controller,
@@ -86,19 +83,11 @@ class ImageHandle {
           'lỗi không thể convert',
           name: 'ImageHandle.processImageFromFrame',
         );
-        return;
+        throw('lỗi không thể convert input Image');
       }
-
-      final metadata = inputImage.metadata;
-      if (metadata == null) return;
-
-      await _myTextRecognizer.processImage(inputImage, callSpeak);
+      return inputImage;
     } catch (e) {
       rethrow;
     }
-  }
-
-  void dispose() {
-    _myTextRecognizer.dispose();
   }
 }

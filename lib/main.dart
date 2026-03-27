@@ -1,3 +1,4 @@
+import 'package:build_access/providers/locator.dart';
 import 'package:build_access/src/features/home_feature/home_features.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  setupLocator();
   runApp(
        const MyApp(),
   );
