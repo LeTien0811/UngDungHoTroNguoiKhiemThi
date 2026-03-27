@@ -13,49 +13,41 @@ class ReadingResultViewModel extends BaseModel {
   String fullResponse = "";
   bool _isDisposed = false;
 
-  Future<void> init(String propRawText) async{
-
+  Future<void> init(String propRawText) async {
     runSafe(() async {
       rawText = propRawText;
       notifyListeners();
-      if(!providerSevice.isReady) providerSevice.initializeSystem();
+      if (!providerSevice.isReady) providerSevice.initializeSystem();
 
-      bool isInitial = false;
-      if(localEngineService.status == AIStatus.uninitialized || localEngineService.status == AIStatus.error) {
-        isInitial = await localEngineService.initialize();
-      } else if(localEngineService.status == AIStatus.ready) {
-        isInitial = true;
-      }
-
-      if(isInitial) {
-        _runPipeline(rawText);
+      if (localEngineService.isReady) {
+        await _runPipeline(rawText);
         return;
-      } else {
-        if(localEngineService.status == AIStatus.missingAICore) {
-          providerSevice.speakQueue('Hệ thống đang thiếu mô hình nhận diện thông minh. Vui lòng tải về từ cửa hàng ứng dụng để sử dụng tính năng này.');
-          await localEngineService.requireInstall();
-        } else {
-          providerSevice.speakQueue('Hệ thống khởi tạo AI thất bại. Vui lòng kiểm tra lại thiết bị.');
-        }
       }
+      return;
     }, 'ReadingResultViewModel.init');
   }
 
-  Future<void> _runPipeline(String rawText) async{
+  Future<void> _runPipeline(String rawText) async {
     await runSafe(() async {
       final regex = RegExp(r'(?<=[.!?\n])\s+');
       final List<String> chunks = rawText.split(regex);
 
-      for(String chunk in chunks) {
-        if(_isDisposed) {
-          developer_log.log('Hủy tiến trình AI vì đã đóng màn hình', name: 'ReadingResultViewModel._runPipeline');
+      for (String chunk in chunks) {
+        if (_isDisposed) {
+          developer_log.log(
+            'Hủy tiến trình AI vì đã đóng màn hình',
+            name: 'ReadingResultViewModel._runPipeline',
+          );
           break;
         }
 
-        final correctedChunk = await localEngineService.processText(chunk);
+        final correctedChunk = await localEngineService.processAndCorrectText(chunk);
 
-        if(_isDisposed) {
-          developer_log.log('Hủy tiến trình AI vì đã đóng màn hình', name: 'ReadingResultViewModel._runPipeline');
+        if (_isDisposed) {
+          developer_log.log(
+            'Hủy tiến trình AI vì đã đóng màn hình',
+            name: 'ReadingResultViewModel._runPipeline',
+          );
           break;
         }
 
@@ -66,7 +58,10 @@ class ReadingResultViewModel extends BaseModel {
       }
 
       if (!_isDisposed) {
-        developer_log.log('Đã xử lý xong toàn bộ văn bản.', name: 'ReadingResultViewModel._runPipeline');
+        developer_log.log(
+          'Đã xử lý xong toàn bộ văn bản.',
+          name: 'ReadingResultViewModel._runPipeline',
+        );
       }
     }, 'ReadingResultViewModel._runPipeline');
   }

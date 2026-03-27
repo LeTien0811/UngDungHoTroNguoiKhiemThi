@@ -1,48 +1,64 @@
-import 'package:build_access/engine/os_local_ai_engine.dart';
 import 'dart:developer' as developer_log;
-
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/providers/locator.dart';
+import 'package:build_access/providers/service_provider.dart';
+import 'package:flutter_leap_sdk/flutter_leap_sdk.dart';
 
 class LocalEngineService {
-  final _aiEngine = OsLocalAiEngine();
-  AIStatus get status => _aiEngine.status;
+  bool _isReady = false;
+  bool get isReady => _isReady;
 
-  Future<bool> initialize() async {
+  Future<void> initializeSystem() async {
     try {
-      if(_aiEngine.status == AIStatus.ready) return true;
+      final modelName = 'LFM2-350M';
+      final isExists = await FlutterLeapSdkService.checkModelExists(modelName);
 
-      bool isSupport = await _aiEngine.isSupported();
-      if (isSupport) {
-        await _aiEngine.initialize();
-        return _aiEngine.status == AIStatus.ready;
+      if (!isExists) {
+        getIt<ProviderSevice>().speakQueue(
+          "Bắt đầu tải dữ liệu trí tuệ nhân tạo. Vui lòng giữ kết nối mạng.",
+        );
+
+        await FlutterLeapSdkService.downloadModel(
+          modelName: modelName,
+          onProgress: (progress) {
+            if (progress.percentage.toInt() % 20 == 0) {
+              getIt<ProviderSevice>().speakQueue(
+                "Đã tải được ${progress.percentage.toInt()} phần trăm.",
+              );
+            }
+          },
+        );
+
+        getIt<ProviderSevice>().speakQueue(
+          "Tải dữ liệu hoàn tất. Hệ thống sẵn sàng.",
+        );
       }
 
-      return false;
+      // Nạp model vào RAM
+      await FlutterLeapSdkService.loadModel(modelPath: modelName);
+      _isReady = true;
     } catch (e) {
-      developer_log.log('lỗi khởi tạo $e', name: 'LocalEngineService.initialize');
-      return false;
+      getIt<ProviderSevice>().speakQueue(
+        "Lỗi khởi tạo hệ thống. Vui lòng thử lại sau.",
+      );
+      rethrow;
     }
   }
 
-  Future<void> requireInstall() async{
-    await _aiEngine.openStoreToInstall();
-  }
+  Future<String> processAndCorrectText(String rawOcrText) async {
+    if (!_isReady) return "Hệ thống đang khởi động, vui lòng chờ.";
 
-  Future<String> processText(String rawText) async{
+    // Ép Prompt bằng tiếng Việt để thử thách khả năng đa ngôn ngữ của Liquid AI
+    final prompt =
+        "Đây là nội dung quét từ hộp thuốc: $rawOcrText. Hãy tóm tắt tên thuốc và cách dùng bằng tiếng Việt.";
+
     try {
-      if(_aiEngine.status == AIStatus.uninitialized) throw('AI chưa được khởi tạo');
-
-      final response = await _aiEngine.processText(rawText);
-
-      if(response == '404') {
-        throw ('AI hiện đang bận vui lòng thử lại sau');
-      }
-
+      final response = await FlutterLeapSdkService.generateResponse(
+        prompt,
+        systemPrompt: "Bạn là trợ lý y tế chuyên nghiệp.",
+      );
       return response;
     } catch (e) {
-      developer_log.log('lỗi khởi tạo $e', name: 'OsLocalAiEngine.isNotSupported');
-      return e.toString();
+      return "Lỗi xử lý AI: $e";
     }
   }
-
 }
