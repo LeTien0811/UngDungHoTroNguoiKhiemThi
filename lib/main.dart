@@ -13,9 +13,7 @@ void main() async {
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   setupLocator();
-  runApp(
-       const MyApp(),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -29,11 +27,9 @@ class MyApp extends StatelessWidget {
       routes: {
         CameraFeatures.routerName: (context) => const CameraFeatures(),
         HomeFeatures.routerName: (context) => const HomeFeatures(),
-        ReadingResultFeatures.routeName: (context) => const ReadingResultFeatures(),
+        ReadingResultFeatures.routeName: (context) =>
+            const ReadingResultFeatures(),
       },
     );
   }
 }
-
-
-

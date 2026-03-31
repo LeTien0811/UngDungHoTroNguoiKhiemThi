@@ -16,7 +16,7 @@ class _BodyState extends State<Body> {
     return Scaffold(
       body: Stack(
         children: [
-          if (widget.model.cameraService.controller != null)
+          if (widget.model.isCameraReady != false)
             SizedBox(
               width: double.infinity,
               height: double.infinity,

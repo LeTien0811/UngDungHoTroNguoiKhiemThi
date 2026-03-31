@@ -84,6 +84,8 @@ class ImageAlgorithm {
             command = deltaY > 0 ? "Dịch sang phải" : "Dịch sang trái";
           }
         }
+
+
         providerService.speakQueue(command);
         throw ("RECAPTURE");
       }

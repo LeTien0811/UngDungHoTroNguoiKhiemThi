@@ -1,3 +1,7 @@
+import 'package:build_access/providers/locator.dart';
+import 'package:build_access/services/navigator_service.dart';
+import 'package:build_access/src/features/camera_feature/camera_features.dart';
+import 'package:build_access/src/features/home_feature/home_features.dart';
 import 'package:build_access/src/features/reading_result_feature/components/organic_glow_painter.dart';
 import 'package:build_access/view/reading_result_view_model.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +17,6 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   late AnimationController _glowController;
-  late ReadingResultViewModel _viewModel;
 
   @override
   void initState() {
@@ -22,10 +25,11 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
+    widget.model.addListener(_onViewModelChange);
   }
 
   void _onViewModelChange() {
-    final isSpeaking = _viewModel.providerSevice.isSpeaking;
+    final isSpeaking = widget.model.providerSevice.isSpeaking;
     if (isSpeaking && !_glowController.isAnimating) {
       _glowController.repeat();
     } else if (!isSpeaking && _glowController.isAnimating) {
@@ -36,26 +40,25 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
 
   void _handleExitToScan() {
     HapticFeedback.mediumImpact();
-    _viewModel.dispose();
-    Navigator.pop(context);
+    widget.model.dispose();
+    getIt<NavigatorService>().pushNamedAndRemoveUntil(CameraFeatures.routerName);
   }
 
   void _handleExitToHome() {
     HapticFeedback.heavyImpact();
-    _viewModel.dispose();
-    Navigator.popUntil(context, (route) => route.isFirst);
+    widget.model.dispose();
+    getIt<NavigatorService>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onViewModelChange);
+    widget.model.removeListener(_onViewModelChange);
     _glowController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -101,7 +104,6 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       );
                     },
                   ),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
                     child: Column(

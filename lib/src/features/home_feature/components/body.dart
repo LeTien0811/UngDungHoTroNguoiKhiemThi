@@ -49,6 +49,7 @@ class _BodyState extends State<Body> {
                   if (details.primaryVelocity! < -300) {
                     HapticFeedback.lightImpact();
                     SnackbarUtil.show(context,message:  "Chuyển sang: Đọc Thông Tin", bgColor:  MyColors.actionCyan);
+                    widget.model.providerSevice.stopSpeaking();
                     getIt<NavigatorService>().navigateTo(CameraFeatures.routerName);
 
                   }

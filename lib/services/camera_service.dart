@@ -35,10 +35,12 @@ class CameraService {
     );
 
     await controller!.initialize();
+    await controller!.setFocusMode(FocusMode.auto);
   }
 
 
   void dispose() {
     controller?.dispose();
+    controller = null;
   }
 }

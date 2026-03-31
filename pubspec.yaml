@@ -35,7 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   provider: ^6.1.5+1
-  speech_to_text: ^7.3.0  # chuyển văn bản thành giọng
+  speech_to_text: ^7.3.0  # chuyển văn bản thành giọng nói
   permission_handler: ^11.0.0 # Quản lý quyền Camera/Micro
   flutter_tts: ^3.8.0       # Để thông báo trạng thái bằng giọng nói
   camera_android_camerax: ^0.6.26+2 # thu vien camera dang su dung
@@ -43,7 +43,9 @@ dependencies:
   google_mlkit_text_recognition: ^0.15.1
   flutter_local_ai: ^0.0.6
   get_it: ^9.2.1
-  llama_cpp_dart: ^0.2.2
+  llama_cpp_dart:
+    git:
+      url: https://github.com/netdur/llama_cpp_dart.git
   dio: ^5.9.2
   path_provider: ^2.1.5
 

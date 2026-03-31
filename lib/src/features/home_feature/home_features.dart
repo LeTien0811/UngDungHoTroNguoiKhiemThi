@@ -4,11 +4,9 @@ import 'package:build_access/src/features/home_feature/components/body.dart';
 import 'package:build_access/view/home_view_model.dart';
 import 'package:flutter/material.dart';
 
-
 class HomeFeatures extends StatelessWidget {
   static String routerName = "/home_feature";
   const HomeFeatures({super.key});
-
   @override
   Widget build(BuildContext context) {
     return BaseView<HomeViewModel>(
@@ -20,7 +18,6 @@ class HomeFeatures extends StatelessWidget {
               ),
             );
           }
-
           return Body(model: model,);
         },
         onModelReady: (model) { model.initializeSystem();},

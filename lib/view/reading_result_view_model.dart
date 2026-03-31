@@ -8,7 +8,6 @@ class ReadingResultViewModel extends BaseModel {
   final ProviderSevice providerSevice = getIt<ProviderSevice>();
   final LocalAiEngineService localEngineService = getIt<LocalAiEngineService>();
   String rawText = '';
-
   String fullResponse = "";
   bool _isDisposed = false;
 
@@ -16,51 +15,74 @@ class ReadingResultViewModel extends BaseModel {
     runSafe(() async {
       rawText = propRawText;
       notifyListeners();
+
       if (!providerSevice.isReady) providerSevice.initializeSystem();
 
       if (localEngineService.isReady) {
         await _runPipeline(rawText);
-        return;
       }
-      return;
     }, 'ReadingResultViewModel.init');
   }
 
   Future<void> _runPipeline(String rawText) async {
     await runSafe(() async {
-      final regex = RegExp(r'(?<=[.!?\n])\s+');
-      final List<String> chunks = rawText.split(regex);
+      providerSevice.speakQueue("Đang xử lý, vui lòng chờ trong giây lát.");
 
-      for (String chunk in chunks) {
-        if (_isDisposed) {
-          developer_log.log(
-            'Hủy tiến trình AI vì đã đóng màn hình',
-            name: 'ReadingResultViewModel._runPipeline',
-          );
-          break;
+      // Cắt văn bản cẩn thận theo dấu chấm, chấm hỏi, chấm than, hoặc xuống dòng kép
+      final regex = RegExp(r'(?<=[.!?])\s+|\n\s*\n');
+      List<String> sentences = rawText.split(regex).where((s) => s.trim().isNotEmpty).toList();
+
+      List<String> chunks = [];
+      String currentChunk = "";
+      final int optimalChunkLength = 350;
+
+      for (String sentence in sentences) {
+        if ((currentChunk.length + sentence.length) > optimalChunkLength) {
+          if (currentChunk.isNotEmpty) {
+            chunks.add(currentChunk.trim());
+          }
+          currentChunk = sentence;
+        } else {
+          currentChunk += (currentChunk.isEmpty ? "" : " ") + sentence;
         }
+      }
 
-        final correctedChunk = await localEngineService.processAndCorrectText(chunk);
+      // Add đoạn cuối cùng
+      if (currentChunk.isNotEmpty) {
+        chunks.add(currentChunk.trim());
+      }
 
-        if (_isDisposed) {
-          developer_log.log(
-            'Hủy tiến trình AI vì đã đóng màn hình',
-            name: 'ReadingResultViewModel._runPipeline',
-          );
-          break;
+      if (chunks.isEmpty) {
+        chunks = [rawText];
+      }
+
+      developer_log.log('Đã gom ngữ nghĩa thành ${chunks.length} đoạn.', name: 'ReadingResultViewModel._runPipeline');
+
+      for (int i = 0; i < chunks.length; i++) {
+        if (_isDisposed) break;
+
+        String chunk = chunks[i].trim();
+
+        // Lọc bỏ rác quá ngắn (như chữ "Search" cô đơn)
+        if (chunk.length < 5) continue;
+
+        String correctedChunk = await localEngineService.processChunk(chunk);
+
+        if (_isDisposed) break;
+
+        // Chống AI nhai lại System Prompt
+        if (correctedChunk.contains("Sửa lỗi chính tả đoạn văn bản")) continue;
+
+        if (correctedChunk.isNotEmpty) {
+          fullResponse += "$correctedChunk ";
+          notifyListeners();
+          providerSevice.speakQueue(correctedChunk);
         }
-
-        fullResponse += "$correctedChunk ";
-        notifyListeners();
-
-        providerSevice.speakQueue(correctedChunk);
       }
 
       if (!_isDisposed) {
-        developer_log.log(
-          'Đã xử lý xong toàn bộ văn bản.',
-          name: 'ReadingResultViewModel._runPipeline',
-        );
+        fullResponse += "\n";
+        notifyListeners();
       }
     }, 'ReadingResultViewModel._runPipeline');
   }
