@@ -28,6 +28,7 @@ class MyTextRecognizer {
       );
       return cleanText;
     } catch (e) {
+      developer_log.log('Chưa thỏa mãn đâu đó: $e', name: 'processImage.MyTextRecognizer');
       rethrow;
     }
   }

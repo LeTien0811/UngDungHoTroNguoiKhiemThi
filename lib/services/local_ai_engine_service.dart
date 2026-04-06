@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer' as developer_log;
-import 'dart:io';
 import 'package:build_access/core/utils/local_ai/override_library_path.dart';
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';
 
@@ -133,9 +132,14 @@ class LocalAiEngineService {
         cancelOnError: true,
       );
 
-      final fullPrompt =
+      final String fullPrompt =
           "<|im_start|>system\n"
-          "Sửa lỗi chính tả OCR tiếng Việt. Chỉ in văn bản đã sửa. Giữ nguyên toàn bộ nội dung.\n"
+          "Bạn là chuyên gia khôi phục văn bản OCR tiếng Việt chuyên sâu.\n"
+          "Nhiệm vụ bắt buộc:\n"
+          "1. Phân tách các từ bị viết dính liền nhau (Ví dụ: \"OnNhu\" -> \"Ôn Như\", \"NguyenVanNgoc\" -> \"Nguyễn Văn Ngọc\").\n"
+          "2. Khôi phục dấu tiếng Việt và sửa lỗi chính tả dựa hoàn toàn vào ngữ cảnh văn bản.\n"
+          "3. Phát hiện và loại bỏ các đoạn văn bản bị lặp lại do lỗi quét khung hình (Deduplication).\n"
+          "4. Tuyệt đối chỉ trả về văn bản kết quả cuối cùng. Không được phép giải thích hoặc thêm văn bản dẫn chuyện.\n"
           "<|im_end|>\n"
           "<|im_start|>user\n"
           "$chunkText\n"

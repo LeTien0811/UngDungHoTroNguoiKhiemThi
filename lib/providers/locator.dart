@@ -3,8 +3,9 @@ import 'package:build_access/core/utils/image_algorithm.dart';
 import 'package:build_access/providers/service_provider.dart';
 import 'package:build_access/services/camera_service.dart';
 import 'package:build_access/services/local_ai_engine_service.dart';
-import 'package:build_access/services/model_downloader_service.dart';
+import 'package:build_access/core/utils/local_ai/model_downloader_service.dart';
 import 'package:build_access/services/navigator_service.dart';
+import 'package:build_access/services/paddle_ocr_service.dart';
 import 'package:build_access/view/camera_view_model.dart';
 import 'package:build_access/view/home_view_model.dart';
 import 'package:build_access/view/reading_result_view_model.dart';
@@ -17,6 +18,7 @@ void setupLocator() {
   getIt.registerLazySingleton<ProviderSevice>(() => ProviderSevice());
   getIt.registerLazySingleton<CameraService>(() => CameraService());
   getIt.registerLazySingleton<LocalAiEngineService>(() => LocalAiEngineService());
+  getIt.registerLazySingleton<PaddleOcrService>(() => PaddleOcrService());
 
   getIt.registerFactory<ImageHandle>(() => ImageHandle());
   getIt.registerFactory<ImageAlgorithm>(() => ImageAlgorithm());

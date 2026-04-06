@@ -37,7 +37,7 @@ class ImageAlgorithm {
       final double area = box.width * box.height;
       final double ratio = area / (imgWidth * imgHeight).toDouble();
 
-      if (ratio < 0.01) {
+      if (ratio < 0.005) {
         providerService.speakQueue('Vui lòng đưa máy lại gần văn bản hơn');
         throw ("RECAPTURE");
       }
@@ -45,10 +45,12 @@ class ImageAlgorithm {
       final double deltaX = textCenterX - screenCenterX;
       final double deltaY = textCenterY - screenCenterY;
 
-      final double thresholdX = imgWidth * 0.25;
-      final double thresholdY = imgHeight * 0.25;
+      final double thresholdX = imgWidth * 0.40;
+      final double thresholdY = imgHeight * 0.40;
 
-      if (deltaX.abs() < thresholdX && deltaY.abs() < thresholdY) {
+      bool isHighQuality = text.text.split(' ').length > 5;
+
+      if (deltaX.abs() < thresholdX && deltaY.abs() < thresholdY || isHighQuality) {
         List<TextBlock> blocks = List.from(text.blocks);
 
         blocks.sort((a, b) {
@@ -102,12 +104,39 @@ class ImageAlgorithm {
       final int height = image.height;
       final int bytesPerRow = plane.bytesPerRow;
 
+      double sumSq = 0;
+      int count = 0;
+
+      for (int y = 4; y < height - 4; y += 8) {
+        for (int x = 4; x < width - 4; x += 8) {
+          int index = y * bytesPerRow + x;
+          int laplacian = bytes[index - 1] + bytes[index + 1] +
+              bytes[index - bytesPerRow] + bytes[index + bytesPerRow] -
+              (4 * bytes[index]);
+          sumSq += laplacian * laplacian;
+          count++;
+        }
+      }
+      return count == 0 ? 0 : sumSq / count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+ /** static double calculateBlurScore(CameraImage image) {
+    try {
+      final Plane plane = image.planes[0];
+      final Uint8List bytes = plane.bytes;
+      final int width = image.width;
+      final int height = image.height;
+      final int bytesPerRow = plane.bytesPerRow;
+
       double sum = 0;
       double sumSq = 0;
       int count = 0;
 
-      for (int y = 1; y < height - 1; y += 4) {
-        for (int x = 1; x < width - 1; x += 4) {
+      for (int y = 4; y < height - 4; y += 8) {
+        for (int x = 4; x < width - 4; x += 8) {
           int index = y * bytesPerRow + x;
 
           int center = bytes[index];
@@ -116,7 +145,6 @@ class ImageAlgorithm {
           int up = bytes[index - bytesPerRow];
           int down = bytes[index + bytesPerRow];
 
-          // Áp dụng công thức Laplacian
           int laplacian = up + down + left + right - (4 * center);
 
           sum += laplacian;
@@ -127,13 +155,12 @@ class ImageAlgorithm {
 
       if (count == 0) return 0;
 
-      // Tính phương sai (Variance)
       double mean = sum / count;
       double variance = (sumSq / count) - (mean * mean);
 
-      return variance; // Giá trị càng cao -> Ảnh càng nét
+      return variance;
     } catch (e) {
       rethrow;
     }
-  }
+  } **/
 }

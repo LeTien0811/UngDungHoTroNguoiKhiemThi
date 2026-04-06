@@ -1,7 +1,7 @@
 import 'package:build_access/config/base_model.dart';
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/services/local_ai_engine_service.dart';
-import 'package:build_access/services/model_downloader_service.dart';
+import 'package:build_access/core/utils/local_ai/model_downloader_service.dart';
 import 'package:build_access/setups/permissions_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';

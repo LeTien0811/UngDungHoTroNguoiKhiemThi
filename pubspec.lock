@@ -265,7 +265,7 @@ packages:
     source: hosted
     version: "4.1.2"
   image:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: image
       sha256: f9881ff4998044947ec38d098bc7c8316ae1186fa786eddffdb867b9bc94dfce
@@ -321,6 +321,14 @@ packages:
       url: "https://github.com/netdur/llama_cpp_dart.git"
     source: git
     version: "0.2.3"
+  logger:
+    dependency: transitive
+    description:
+      name: logger
+      sha256: "7ad7215c15420a102ec687bb320a7312afd449bac63bfb1c60d9787c27b9767f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   logging:
     dependency: transitive
     description:
@@ -385,6 +393,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.3.0"
+  paddle_ocr:
+    dependency: "direct main"
+    description:
+      name: paddle_ocr
+      sha256: "11357c6e2093aae7c814313298ad311145c138836ef54f7911272638aab23cfe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
   path:
     dependency: transitive
     description:
@@ -647,7 +663,7 @@ packages:
     source: hosted
     version: "6.0.0"
   uuid:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: uuid
       sha256: "1fef9e8e11e2991bb773070d4656b7bd5d850967a2456cfc83cf47925ba79489"
