@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:paddle_ocr/bean/ocr_results.dart';
 import 'package:paddle_ocr/paddle_ocr.dart';
 import 'package:paddle_ocr/bean/ocr_result.dart';
 import 'dart:math';
-import 'dart:developer' as developer_log;
 
 class PaddleOcrService {
   static final PaddleOcrService _instance = PaddleOcrService._internal();

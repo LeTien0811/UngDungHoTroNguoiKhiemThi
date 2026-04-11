@@ -1,46 +1,136 @@
 import 'dart:io';
+import 'package:build_access/enum/config.dart';
+import 'package:build_access/providers/camera_provider.dart';
+import 'package:build_access/providers/locator.dart';
 import 'package:camera/camera.dart';
 import 'dart:developer' as developer_log;
 
+
 class CameraService {
+  CameraProvider cameraProvider = getIt<CameraProvider>();
+
   CameraController? controller;
+  CameraDescription? camera;
 
   Future<CameraDescription?> getFirstCamera() async {
     try {
       final cameras = await availableCameras();
       if (cameras.isNotEmpty) {
         final backCamera = cameras.firstWhere(
-              (cam) => cam.lensDirection == CameraLensDirection.back,
+          (cam) => cam.lensDirection == CameraLensDirection.back,
           orElse: () => cameras.first,
         );
 
         return backCamera;
       }
     } catch (e) {
-      developer_log.log("Lỗi khởi tạo Camera: $e", name: 'CameraService.getFirstCamera');
+      developer_log.log(
+        "Lỗi khởi tạo Camera: $e",
+        name: 'CameraService.getFirstCamera',
+      );
       return null;
     }
     return null;
   }
 
-  Future<void> init(CameraDescription camera) async {
-    if(controller != null) return;
-    controller = CameraController(
-      camera,
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: Platform.isAndroid
-          ? ImageFormatGroup.nv21
-          : ImageFormatGroup.bgra8888,
-    );
+  Future<void> init() async {
+    await cameraProvider.runSafe(() async{
+      if (controller != null) {
+        if (controller!.value.isInitialized) return;
 
-    await controller!.initialize();
-    await controller!.setFocusMode(FocusMode.auto);
+        await controller!.dispose();
+        controller = null;
+      }
+      camera = await getFirstCamera();
+      if (camera == null) return;
+
+      controller = CameraController(
+        camera!,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
+      );
+
+      await controller!.initialize();
+      await controller!.setFocusMode(FocusMode.auto);
+
+      cameraProvider.setReady(true);
+    }, 'CameraService.init');
   }
 
+  Future<void> refocus() async {
+    await controller?.setFocusMode(FocusMode.auto);
+  }
 
-  void dispose() {
-    controller?.dispose();
-    controller = null;
+  Future<void> startStream(Future<bool> Function(CameraImage imageFromeFrame) processDetech) async{
+    await cameraProvider.runSafe(() async{
+
+      if (controller!.value.isStreamingImages) return;
+
+      if (cameraProvider.isDisposed || controller == null || !cameraProvider.isReady) {
+        throw Exception('Camera đang bận hoặc chưa sẵn sàng');
+      }
+
+      await controller!.startImageStream((
+          CameraImage image,
+          ) async {
+
+        if (cameraProvider.isDisposed || cameraProvider.isProcessing) return;
+
+        final int currentMs = DateTime.now().millisecondsSinceEpoch;
+
+        if (currentMs - cameraProvider.lastScanTime.millisecondsSinceEpoch < 150) {
+          return;
+        }
+
+        cameraProvider.setLastScanTime();
+        cameraProvider.setProcessing(true);
+
+        try {
+
+          bool isProcess = await processDetech(image);
+          if(isProcess) {
+            await stopStream();
+            cameraProvider.setCameraStatus(CameraStatus.idle);
+          }
+        } catch (e) {
+            developer_log.log('Lỗi luồng: $e', name: 'stream.camera_service');
+        } finally {
+          cameraProvider.setProcessing(false);
+        }
+      });
+    }, 'CameraService.startImageStream');
+  }
+
+  Future<void> stopStream() async {
+    try {
+      if (controller != null && controller!.value.isStreamingImages) {
+        await controller!.stopImageStream();
+        return;
+      }
+      return;
+    } catch (e) {
+      developer_log.log(
+        'Lỗi dừng stream: $e',
+        name: 'CameraViewModel.stopStream',
+      );
+    }
+  }
+
+  Future<void> dispose() async {
+    try {
+      if (controller != null) {
+        if (controller!.value.isStreamingImages) {
+          await controller!.stopImageStream();
+        }
+        await controller!.dispose();
+        controller = null;
+        cameraProvider.setDisposed(true);
+      }
+    } catch (e) {
+      developer_log.log("Dispose error: $e");
+    }
   }
 }

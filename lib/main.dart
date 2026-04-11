@@ -1,8 +1,8 @@
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/services/navigator_service.dart';
-import 'package:build_access/src/features/camera_feature/camera_features.dart';
-import 'package:build_access/src/features/home_feature/home_features.dart';
-import 'package:build_access/src/features/reading_result_feature/reading_result_features.dart';
+import 'package:build_access/features/camera_feature/camera_features.dart';
+import 'package:build_access/features/home_feature/home_features.dart';
+import 'package:build_access/features/reading_result_feature/reading_result_features.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

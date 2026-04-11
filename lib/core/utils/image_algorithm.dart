@@ -1,19 +1,19 @@
-import 'package:build_access/providers/locator.dart';
-import 'package:build_access/providers/service_provider.dart';
-import 'package:camera/camera.dart';
+import 'package:build_access/config/process_image_result.dart';
+import 'package:build_access/enum/config.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ImageAlgorithm {
-  final ProviderSevice providerService = getIt<ProviderSevice>();
-  String analyzeTextPosition(
+  ProcessImageResult analyzeTextPosition(
     RecognizedText text,
     int imgWidth,
     int imgHeight,
     int rotation,
   ) {
     try {
-      if (text.blocks.isEmpty) throw ("RECAPTURE");
+      if (text.blocks.isEmpty) {
+        return ProcessImageResult(ProcessStatus.recapture);
+      }
 
       TextBlock mainBlock = text.blocks.first;
       double maxArea = 0;
@@ -38,19 +38,22 @@ class ImageAlgorithm {
       final double ratio = area / (imgWidth * imgHeight).toDouble();
 
       if (ratio < 0.005) {
-        providerService.speakQueue('Vui lòng đưa máy lại gần văn bản hơn');
-        throw ("RECAPTURE");
+        return ProcessImageResult(
+          ProcessStatus.recapture,
+          command: "Vui lòng đưa máy lại gần văn bản hơn",
+        );
       }
 
       final double deltaX = textCenterX - screenCenterX;
       final double deltaY = textCenterY - screenCenterY;
 
-      final double thresholdX = imgWidth * 0.40;
-      final double thresholdY = imgHeight * 0.40;
+      final double thresholdX = imgWidth * 0.25;
+      final double thresholdY = imgHeight * 0.25;
 
-      bool isHighQuality = text.text.split(' ').length > 5;
+      bool isHighQuality = text.text.length > 20 && text.blocks.length >= 2;
 
-      if (deltaX.abs() < thresholdX && deltaY.abs() < thresholdY || isHighQuality) {
+      if (deltaX.abs() < thresholdX && deltaY.abs() < thresholdY ||
+          isHighQuality) {
         List<TextBlock> blocks = List.from(text.blocks);
 
         blocks.sort((a, b) {
@@ -70,7 +73,11 @@ class ImageAlgorithm {
         }
 
         String cleanText = finalStructuredText.toString().trim();
-        return cleanText;
+        return ProcessImageResult(
+          ProcessStatus.ok,
+          textDetect: cleanText,
+        );
+
       } else {
         String command = "";
         if (deltaX.abs() > deltaY.abs()) {
@@ -86,81 +93,10 @@ class ImageAlgorithm {
             command = deltaY > 0 ? "Dịch sang phải" : "Dịch sang trái";
           }
         }
-
-
-        providerService.speakQueue(command);
-        throw ("RECAPTURE");
+        return ProcessImageResult(ProcessStatus.recapture, command: command);
       }
     } catch (e) {
       rethrow;
     }
   }
-
-  static double calculateBlurScore(CameraImage image) {
-    try {
-      final Plane plane = image.planes[0];
-      final Uint8List bytes = plane.bytes;
-      final int width = image.width;
-      final int height = image.height;
-      final int bytesPerRow = plane.bytesPerRow;
-
-      double sumSq = 0;
-      int count = 0;
-
-      for (int y = 4; y < height - 4; y += 8) {
-        for (int x = 4; x < width - 4; x += 8) {
-          int index = y * bytesPerRow + x;
-          int laplacian = bytes[index - 1] + bytes[index + 1] +
-              bytes[index - bytesPerRow] + bytes[index + bytesPerRow] -
-              (4 * bytes[index]);
-          sumSq += laplacian * laplacian;
-          count++;
-        }
-      }
-      return count == 0 ? 0 : sumSq / count;
-    } catch (e) {
-      return 0;
-    }
-  }
-
- /** static double calculateBlurScore(CameraImage image) {
-    try {
-      final Plane plane = image.planes[0];
-      final Uint8List bytes = plane.bytes;
-      final int width = image.width;
-      final int height = image.height;
-      final int bytesPerRow = plane.bytesPerRow;
-
-      double sum = 0;
-      double sumSq = 0;
-      int count = 0;
-
-      for (int y = 4; y < height - 4; y += 8) {
-        for (int x = 4; x < width - 4; x += 8) {
-          int index = y * bytesPerRow + x;
-
-          int center = bytes[index];
-          int left = bytes[index - 1];
-          int right = bytes[index + 1];
-          int up = bytes[index - bytesPerRow];
-          int down = bytes[index + bytesPerRow];
-
-          int laplacian = up + down + left + right - (4 * center);
-
-          sum += laplacian;
-          sumSq += laplacian * laplacian;
-          count++;
-        }
-      }
-
-      if (count == 0) return 0;
-
-      double mean = sum / count;
-      double variance = (sumSq / count) - (mean * mean);
-
-      return variance;
-    } catch (e) {
-      rethrow;
-    }
-  } **/
 }

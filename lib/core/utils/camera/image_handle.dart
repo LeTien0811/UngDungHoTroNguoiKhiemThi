@@ -1,58 +1,13 @@
-import 'dart:io';
-import 'package:build_access/core/utils/device_orientation.dart';
-import 'package:build_access/core/utils/image_algorithm.dart';
-import 'package:build_access/providers/locator.dart';
-import 'package:build_access/providers/service_provider.dart';
+import 'package:build_access/config/process_format_input_image_result.dart';
+import 'package:build_access/constant/blur_score.dart';
+import 'package:build_access/core/utils/input_image_format.dart';
+import 'package:build_access/enum/config.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:developer' as developer_log;
 
 class ImageHandle {
-  InputImage? _inputImageFromCameraImage(
-    CameraImage image,
-    CameraDescription camera,
-    CameraController controller,
-  ) {
-    final sensorOrientation = camera.sensorOrientation;
-    InputImageRotation? rotation;
-    if (Platform.isIOS) {
-      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
-    } else if (Platform.isAndroid) {
-      var rotationCompensation =
-          orientationsCheck[controller.value.deviceOrientation];
-      if (rotationCompensation == null) return null;
-      if (camera.lensDirection == CameraLensDirection.front) {
-        rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
-      } else {
-        rotationCompensation =
-            (sensorOrientation - rotationCompensation + 360) % 360;
-      }
-      rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
-    }
-    if (rotation == null) return null;
-
-    final format = InputImageFormatValue.fromRawValue(image.format.raw);
-    if (format == null ||
-        (Platform.isAndroid && format != InputImageFormat.nv21) ||
-        (Platform.isIOS && format != InputImageFormat.bgra8888)) {
-      return null;
-    }
-
-    final plane = image.planes.first;
-
-    return InputImage.fromBytes(
-      bytes: plane.bytes,
-      metadata: InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
-        rotation: rotation,
-        format: format,
-        bytesPerRow: plane.bytesPerRow,
-      ),
-    );
-  }
-
-  Future<InputImage?> processImageFromFrame(
+  Future<ProcessFormatInputImageResult> processImageFromFrame(
     CameraImage imageFromFrame,
     CameraDescription camera,
     CameraController controller,
@@ -63,15 +18,14 @@ class ImageHandle {
         name: 'ImageHandle.processImageFromFrame',
       );
 
-      double blurScore = ImageAlgorithm.calculateBlurScore(imageFromFrame);
-
+      double blurScore = calculateBlurScore(imageFromFrame);
+      developer_log.log('Blur score: $blurScore', name: 'ImageHandle.processImageFromFrame');
       if (blurScore < 35) {
         developer_log.log('Ảnh mờ', name: 'ImageHandle.processImageFromFrame');
-        getIt<ProviderSevice>().speakQueue("Ảnh mờ vui lòng dữ yên điện thoại hoặc di chuyển để lấy nét");
-        throw ("RECAPTURE");
+        return ProcessFormatInputImageResult(ProcessStatus.blur);
       }
 
-      InputImage? inputImage = _inputImageFromCameraImage(
+      InputImage? inputImage = inputImageFormat(
         imageFromFrame,
         camera,
         controller,
@@ -82,9 +36,10 @@ class ImageHandle {
           'lỗi không thể convert',
           name: 'ImageHandle.processImageFromFrame',
         );
-        throw('lỗi không thể convert input Image');
+        return ProcessFormatInputImageResult(ProcessStatus.recapture);
       }
-      return inputImage;
+
+      return ProcessFormatInputImageResult(ProcessStatus.ok, image: inputImage);
     } catch (e) {
       rethrow;
     }
