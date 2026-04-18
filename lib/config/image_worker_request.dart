@@ -5,7 +5,7 @@ class ImageWorkerRequest {
   final Uint8List bytes;
   final int width;
   final int height;
-  final int stride; // THÊM DÒNG NÀY
+  final int stride;
   final int? cropX;
   final int? cropY;
   final int? cropW;
@@ -16,7 +16,7 @@ class ImageWorkerRequest {
     required this.bytes,
     required this.width,
     required this.height,
-    required this.stride, // THÊM DÒNG NÀY
+    required this.stride,
     this.cropX,
     this.cropY,
     this.cropW,

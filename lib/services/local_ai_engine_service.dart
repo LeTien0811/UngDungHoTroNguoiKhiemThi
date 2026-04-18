@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer_log;
-import 'package:build_access/core/utils/local_ai/override_library_path.dart';
+import 'package:build_access/core/local_ai/override_library_path.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/providers/local_ai_provider.dart';
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';

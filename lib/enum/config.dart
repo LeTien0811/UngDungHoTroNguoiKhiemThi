@@ -17,4 +17,16 @@ enum ProcessStatus { ok, blur, recapture, error }
 
 enum ErrorFrame { blur, recapture }
 
-enum AiType { ocrCorrection, voiceAssistantQA, error}
+enum AiType { ocrCorrection, voiceAssistantQA, error }
+
+enum IntentType {
+  repeat,
+  history,
+  settings,
+  cancel,
+  usage,
+  safety,
+  details,
+  general,
+  unknown
+}

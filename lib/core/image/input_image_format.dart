@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:build_access/core/utils/image/device_orientation.dart';
+import 'package:build_access/core/image/device_orientation.dart';
 import 'package:camera/camera.dart';
 import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';

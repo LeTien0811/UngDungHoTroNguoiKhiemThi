@@ -1,9 +1,8 @@
 import 'dart:typed_data';
-
 import 'package:build_access/core/base/base_service.dart';
-import 'package:build_access/core/utils/camera/image_handle.dart';
+import 'package:build_access/core/camera/image_handle.dart';
 import 'package:build_access/core/utils/file_utils.dart';
-import 'package:build_access/core/utils/image/device_orientation.dart';
+import 'package:build_access/core/image/device_orientation.dart';
 import 'package:build_access/engine/handle_image_worker_service.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/ml/my_text_recognizer.dart';

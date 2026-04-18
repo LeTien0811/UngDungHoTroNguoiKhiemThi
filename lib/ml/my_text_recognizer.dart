@@ -1,5 +1,5 @@
 import 'package:build_access/models/scan/process_image_result.dart';
-import 'package:build_access/core/utils/image/image_algorithm.dart';
+import 'package:build_access/core/image/image_algorithm.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:developer' as developer_log;

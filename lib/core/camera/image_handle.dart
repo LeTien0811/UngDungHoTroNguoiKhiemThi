@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:build_access/models/scan/process_format_input_image_result.dart';
 import 'package:build_access/constant/blur_score.dart';
-import 'package:build_access/core/utils/image/input_image_format.dart';
+import 'package:build_access/core/image/input_image_format.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
