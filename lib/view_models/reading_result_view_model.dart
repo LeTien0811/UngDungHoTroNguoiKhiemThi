@@ -1,4 +1,6 @@
-import 'package:build_access/config/base_model.dart';
+import 'package:build_access/core/base/base_model.dart';
+import 'package:build_access/enum/config.dart';
+import 'package:build_access/providers/local_ai_provider.dart';
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/providers/global_provider.dart';
 import 'package:build_access/services/local_ai_engine_service.dart';
@@ -7,29 +9,36 @@ import 'dart:developer' as developer_log;
 class ReadingResultViewModel extends BaseModel {
   final GlobalProvider globalProvider = getIt<GlobalProvider>();
   final LocalAiEngineService localEngineService = getIt<LocalAiEngineService>();
+  final LocalAiProvider localAiProvider = getIt<LocalAiProvider>();
   String rawText = '';
+  AiType type = AiType.error;
   String fullResponse = "";
-  bool _isDisposed = false;
 
-  Future<void> init(String propRawText) async {
+  Future<void> init({required String propRawText, required AiType propType}) async {
     await runSafe(() async {
       rawText = propRawText;
+      type = propType;
+      localAiProvider.setReady(true);
       notifyListeners();
 
       if (!globalProvider.isReady) globalProvider.initializeSystem();
 
-      if (localEngineService.isReady) {
+      if (localAiProvider.status == LocalAiStatus.ready) {
         await _runPipeline(rawText);
       }
     }, 'ReadingResultViewModel.init');
   }
 
   Future<void> _runPipeline(String rawText) async {
-    /** await runSafe(() async {
+    await runSafe(() async {
+      localAiProvider.setProcessing();
       globalProvider.speakQueue("Đang xử lý, vui lòng chờ trong giây lát.");
 
       final regex = RegExp(r'(?<=[.!?])\s+|\n\s*\n');
-      List<String> sentences = rawText.split(regex).where((s) => s.trim().isNotEmpty).toList();
+      List<String> sentences = rawText
+          .split(regex)
+          .where((s) => s.trim().isNotEmpty)
+          .toList();
 
       List<String> chunks = [];
       String currentChunk = "";
@@ -54,17 +63,20 @@ class ReadingResultViewModel extends BaseModel {
         chunks = [rawText];
       }
 
-      developer_log.log('Đã gom ngữ nghĩa thành ${chunks.length} đoạn.', name: 'ReadingResultViewModel._runPipeline');
+      developer_log.log(
+        'Đã gom ngữ nghĩa thành ${chunks.length} đoạn.',
+        name: 'ReadingResultViewModel._runPipeline',
+      );
 
       for (int i = 0; i < chunks.length; i++) {
-        if (_isDisposed) break;
+        if (localAiProvider.status != LocalAiStatus.processing) break;
 
         String chunk = chunks[i].trim();
         if (chunk.length < 5) continue;
 
         String correctedChunk = await localEngineService.processChunk(chunk);
 
-        if (_isDisposed) break;
+        if (localAiProvider.status != LocalAiStatus.processing) break;
 
         if (correctedChunk.contains("Sửa lỗi chính tả đoạn văn bản")) continue;
 
@@ -75,23 +87,16 @@ class ReadingResultViewModel extends BaseModel {
         }
       }
 
-      if (!_isDisposed) {
+      if (localAiProvider.status == LocalAiStatus.processing) {
         fullResponse += "\n";
         notifyListeners();
       }
-    }, 'ReadingResultViewModel._runPipeline'); **/
-
-    await runSafe(() async {
-      globalProvider.speakQueue("Đang xử lý, vui lòng chờ trong giây lát.");
-      fullResponse = rawText;
-      notifyListeners();
-      globalProvider.speakQueue("Kết quả đọc được. $fullResponse");
-    },'ReadingResultViewModel._runPipeline');
+    }, 'ReadingResultViewModel._runPipeline');
   }
 
   @override
   void dispose() {
-    _isDisposed = true;
+    localAiProvider.setDisposed();
     globalProvider.stopSpeaking();
     super.dispose();
   }

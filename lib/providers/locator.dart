@@ -1,5 +1,8 @@
 import 'package:build_access/core/utils/camera/image_handle.dart';
-import 'package:build_access/core/utils/image_algorithm.dart';
+import 'package:build_access/core/utils/image/image_algorithm.dart';
+import 'package:build_access/engine/handle_image_worker_service.dart';
+import 'package:build_access/providers/local_ai_provider.dart';
+import 'package:build_access/services/scan/detect_and_recognizer_text.dart';
 import 'package:build_access/providers/camera_provider.dart';
 import 'package:build_access/providers/global_provider.dart';
 import 'package:build_access/services/camera_service.dart';
@@ -7,7 +10,7 @@ import 'package:build_access/services/local_ai_engine_service.dart';
 import 'package:build_access/core/utils/local_ai/model_downloader_service.dart';
 import 'package:build_access/services/navigator_service.dart';
 import 'package:build_access/services/paddle_ocr_service.dart';
-import 'package:build_access/view_models//camera_view_model.dart';
+import 'package:build_access/view_models/camera_view_model.dart';
 import 'package:build_access/view_models/home_view_model.dart';
 import 'package:build_access/view_models/reading_result_view_model.dart';
 import 'package:get_it/get_it.dart';
@@ -15,18 +18,24 @@ import 'package:get_it/get_it.dart';
 GetIt getIt = GetIt.instance;
 
 void setupLocator() {
-
   // navigator and provider
   getIt.registerLazySingleton<NavigatorService>(() => NavigatorService());
   getIt.registerLazySingleton<GlobalProvider>(() => GlobalProvider());
   getIt.registerLazySingleton<CameraProvider>(() => CameraProvider());
+  getIt.registerLazySingleton<LocalAiProvider>(() => LocalAiProvider());
 
   // Service
   getIt.registerLazySingleton<CameraService>(() => CameraService());
+  getIt.registerLazySingleton<HandleImageWorkerService>(
+    () => HandleImageWorkerService(),
+  );
+  getIt.registerLazySingleton<DetectAndRecognizerText>(() => DetectAndRecognizerText());
 
   //AI
   getIt.registerFactory<ModelDownloaderService>(() => ModelDownloaderService());
-  getIt.registerLazySingleton<LocalAiEngineService>(() => LocalAiEngineService());
+  getIt.registerLazySingleton<LocalAiEngineService>(
+    () => LocalAiEngineService(),
+  );
   getIt.registerLazySingleton<PaddleOcrService>(() => PaddleOcrService());
 
   // Thuat toan

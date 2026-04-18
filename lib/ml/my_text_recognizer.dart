@@ -1,5 +1,5 @@
-import 'package:build_access/config/process_image_result.dart';
-import 'package:build_access/core/utils/image_algorithm.dart';
+import 'package:build_access/models/scan/process_image_result.dart';
+import 'package:build_access/core/utils/image/image_algorithm.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:developer' as developer_log;
@@ -42,12 +42,13 @@ class MyTextRecognizer {
           break;
       }
 
-      ProcessImageResult finalResult = ImageAlgorithm().analyzeTextPosition(
+      ProcessImageResult finalResult = ImageAlgorithm.analyzeTextPosition(
         recognizedText,
         metadata.size.width.toInt(),
         metadata.size.height.toInt(),
         rotationDegrees,
       );
+
       return finalResult;
     } catch (e) {
       developer_log.log(

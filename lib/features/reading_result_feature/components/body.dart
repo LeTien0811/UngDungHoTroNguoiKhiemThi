@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:build_access/providers/locator.dart';
 import 'package:build_access/services/navigator_service.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
@@ -16,32 +17,36 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
-  late AnimationController _glowController;
+  late AnimationController _waveController;
 
   @override
   void initState() {
     super.initState();
-    _glowController = AnimationController(
+    _waveController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
     );
     widget.model.addListener(_onViewModelChange);
+    // Bật sóng ngay khi vào màn hình
+    _waveController.repeat();
   }
 
   void _onViewModelChange() {
-    final isSpeaking = widget.model.globalProvider.isSpeaking;
-    if (isSpeaking && !_glowController.isAnimating) {
-      _glowController.repeat();
-    } else if (!isSpeaking && _glowController.isAnimating) {
-      _glowController.stop();
-      _glowController.animateTo(0, duration: const Duration(milliseconds: 500));
+    // Nếu AI ngừng nói, sóng sẽ chuyển động chậm lại hoặc nhỏ đi (tùy ý ní)
+    if (!widget.model.globalProvider.isSpeaking) {
+      // _waveController.stop(); // Có thể dừng nếu muốn
+    } else {
+      if (!_waveController.isAnimating) _waveController.repeat();
     }
+    if (mounted) setState(() {});
   }
 
   void _handleExitToScan() {
     HapticFeedback.mediumImpact();
     widget.model.dispose();
-    getIt<NavigatorService>().pushNamedAndRemoveUntil(CameraFeatures.routerName);
+    getIt<NavigatorService>().pushNamedAndRemoveUntil(
+      CameraFeatures.routerName,
+    );
   }
 
   void _handleExitToHome() {
@@ -53,7 +58,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     widget.model.removeListener(_onViewModelChange);
-    _glowController.dispose();
+    _waveController.dispose();
     super.dispose();
   }
 
@@ -61,77 +66,136 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleExitToScan();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0B132B),
-        body: SafeArea(
-          child: Semantics(
-            label: 'Đang đọc kết quả. Chạm một lần hoặc chạm đúp để quét lại. Vuốt lên bằng hai ngón tay để về trang chủ.',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _handleExitToScan,
-              onDoubleTap: _handleExitToScan,
-              onVerticalDragEnd: (details) {
-                if (details.primaryVelocity! < -300) {
-                  _handleExitToHome();
-                }
-              },
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (context, child) {
-                      return ShaderMask(
-                        shaderCallback: (Rect bounds) {
-                          return RadialGradient(
-                            colors: [
-                              const Color(0xFF00FFFF).withOpacity(0.6 * _glowController.value),
-                              const Color(0xFFFF00FF).withOpacity(0.3 * _glowController.value),
-                              Colors.transparent,
-                            ],
-                            stops: [0.0, 0.4 + (_glowController.value * 0.4), 1.0],
-                          ).createShader(bounds);
-                        },
-                        blendMode: BlendMode.dstIn,
-                        child: CustomPaint(
-                          painter: OrganicGlowPainter(animation: _glowController),
-                          size: const Size(double.infinity, double.infinity),
-                        ),
-                      );
-                    },
+        backgroundColor: const Color(0xFF050505), // Đen sâu thẳm
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _handleExitToScan,
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity! < -300) _handleExitToHome();
+          },
+          child: Stack(
+            children: [
+              // 1. Nền Gradient mờ ảo phía sau
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 1.5,
+                      colors: [
+                        const Color(0xFF1A1F38),
+                        const Color(0xFF050505),
+                      ],
+                    ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                ),
+              ),
+
+              // 2. Hệ thống sóng âm Google Assistant ở dưới đáy
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 200,
+                child: AnimatedBuilder(
+                  animation: _waveController,
+                  builder: (context, child) {
+                    return Stack(
                       children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            child: Text(
-                              widget.model.fullResponse.isEmpty
-                                  ? "Đang phân tích dữ liệu..."
-                                  : widget.model.fullResponse,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFFF3C623),
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                height: 1.5,
-                              ),
+                        // Hiệu ứng nhòe (Blur) để sóng trông ảo diệu hơn
+                        Positioned.fill(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                            child: Container(color: Colors.transparent),
+                          ),
+                        ),
+                        CustomPaint(
+                          painter: GoogleAssistantWavePainter(
+                            animation: _waveController,
+                          ),
+                          size: Size.infinite,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              // 3. Nội dung văn bản chính
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 60),
+                      // Icon AI nhỏ xinh phía trên
+                      Icon(
+                        Icons.auto_awesome,
+                        color: widget.model.globalProvider.isSpeaking
+                            ? const Color(0xFF4285F4)
+                            : Colors.grey,
+                        size: 30,
+                      ),
+                      const SizedBox(height: 20),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Text(
+                            widget.model.fullResponse.isEmpty
+                                ? "Đang lắng nghe dữ liệu..."
+                                : widget.model.fullResponse,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.5,
+                              height: 1.6,
+                              // Đổ bóng nhẹ cho chữ dễ đọc
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 10,
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 150), // Chừa chỗ cho sóng âm
+                    ],
+                  ),
+                ),
+              ),
+
+              // 4. Chỉ báo "Đang nói" (Glow dot)
+              if (widget.model.globalProvider.isSpeaking)
+                Positioned(
+                  top: 40,
+                  right: 30,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF4285F4),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF4285F4),
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+            ],
           ),
         ),
       ),

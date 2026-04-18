@@ -1,4 +1,4 @@
-import 'package:build_access/config/base_model.dart';
+import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/setups/permissions_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -50,8 +50,8 @@ class GlobalProvider extends BaseModel {
     notifyListeners();
 
     speakQueue("Hệ thống đã sẵn sàng.");
-    speakQueue("Vuốt từ trên xuống để để bắt đầu quét nhận diện mà không cần mạng");
-    speakQueue("Vuốt từ dưới lên để bắt đầu quét thông minh");
+    speakQueue("Vuốt từ trên xuống để để quét nhận diện mà không cần mạng");
+    speakQueue("Vuốt từ dưới lên để quét thông minh");
   }
 
   Future<void> _initMic() async {

@@ -1,12 +1,20 @@
 enum ViewState { idle, busy }
 
-enum AIStatus { uninitialized, initializing, ready, error, missingAICore }
+enum ServiceState { idle, busy }
 
-enum CameraStatus { idle, uninitialized, blur, recapture, processing, success }
+enum CameraStatus { idle, uninitialized, ready, processing, success }
 
-enum ProcessStatus {
-  ok,
-  blur,
-  recapture,
+enum LocalAiStatus {
+  idle,
+  initializing,
+  ready,
   error,
+  uninitialized,
+  processing,
 }
+
+enum ProcessStatus { ok, blur, recapture, error }
+
+enum ErrorFrame { blur, recapture }
+
+enum AiType { ocrCorrection, voiceAssistantQA, error}

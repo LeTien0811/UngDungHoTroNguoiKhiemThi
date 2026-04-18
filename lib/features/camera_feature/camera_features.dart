@@ -1,4 +1,4 @@
-import 'package:build_access/config/base_view.dart';
+import 'package:build_access/core/base/base_view.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/features/camera_feature/components/body.dart';
 import 'package:build_access/view_models/camera_view_model.dart';

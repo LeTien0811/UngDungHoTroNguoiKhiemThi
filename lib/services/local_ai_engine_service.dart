@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:developer' as developer_log;
 import 'package:build_access/core/utils/local_ai/override_library_path.dart';
+import 'package:build_access/enum/config.dart';
+import 'package:build_access/providers/local_ai_provider.dart';
 import 'package:llama_cpp_dart/llama_cpp_dart.dart';
+import 'package:build_access/providers/locator.dart';
 
 class LocalAiEngineService {
+  LocalAiProvider localAiProvider = getIt<LocalAiProvider>();
   LlamaParent? _llamaParent;
   StreamSubscription? _streamSubscription;
-  bool _isReady = false;
-  bool _isProcessing = false;
 
   final int _maxContext = 1024;
   int _contextUsedTokens = 0;
@@ -15,7 +17,6 @@ class LocalAiEngineService {
 
   bool _isLowEndDevice = false;
 
-  bool get isReady => _isReady;
 
   Future<void> initializeSystem(String modelAbsolutePath) async {
     try {
@@ -37,10 +38,10 @@ class LocalAiEngineService {
       modelParams.useMemorymap = true;
 
       final samplingParams = SamplerParams();
-      samplingParams.temp = _isLowEndDevice ? 0.1 : 0.25  ;
+      samplingParams.temp = _isLowEndDevice ? 0.2 : 0.3;
       samplingParams.topP = 0.90;
       samplingParams.topK = 40;
-      samplingParams.penaltyRepeat = 1.10;
+      samplingParams.penaltyRepeat = 1.0;
 
       final loadCommand = LlamaLoad(
         path: modelAbsolutePath,
@@ -57,13 +58,14 @@ class LocalAiEngineService {
       await Future.delayed(Duration(milliseconds: _isLowEndDevice ? 2000 : 1000));
 
       _contextUsedTokens = 0;
-      _isReady = true;
+
+      localAiProvider.setReady(true);
       developer_log.log(
         'Llama Isolate Engine đã sẵn sàng nhận lệnh!',
         name: 'LocalAiEngineService',
       );
     } catch (e) {
-      _isReady = false;
+      localAiProvider.setReady(false);
       developer_log.log('Crash Init: $e', name: 'LocalEngineService');
       rethrow;
     }
@@ -74,18 +76,17 @@ class LocalAiEngineService {
       'Hard Reset giải phóng RAM...',
       name: 'LocalAiEngineService',
     );
-    _isReady = false;
-    _isProcessing = false;
+    localAiProvider.setDisposed();
     await _streamSubscription?.cancel();
     _streamSubscription = null;
     await initializeSystem(_currentModelPath);
   }
 
   Future<String> processChunk(String chunkText) async {
-    if (!_isReady || _llamaParent == null) return "";
-    if (_isProcessing) return "";
+    if (localAiProvider.status != LocalAiStatus.ready || _llamaParent == null) return "";
+    if (localAiProvider.status == LocalAiStatus.processing) return "";
 
-    _isProcessing = true;
+    localAiProvider.setProcessing();
 
     if (_contextUsedTokens + (chunkText.length) > _maxContext - 150) {
       await _resetContext();
@@ -127,6 +128,7 @@ class LocalAiEngineService {
             'Luồng Crash với lỗi: $e',
             name: 'AI_TELEMETRY_ERROR',
           );
+          localAiProvider.setError();
           if (!completer.isCompleted) completer.completeError(e);
         },
         cancelOnError: true,
@@ -134,16 +136,16 @@ class LocalAiEngineService {
 
       final String fullPrompt =
           "<|im_start|>system\n"
-          "Bạn là chuyên gia khôi phục văn bản OCR tiếng Việt chuyên sâu.\n"
-          "Nhiệm vụ bắt buộc:\n"
-          "1. Phân tách các từ bị viết dính liền nhau (Ví dụ: \"OnNhu\" -> \"Ôn Như\", \"NguyenVanNgoc\" -> \"Nguyễn Văn Ngọc\").\n"
-          "2. Khôi phục dấu tiếng Việt và sửa lỗi chính tả dựa hoàn toàn vào ngữ cảnh văn bản.\n"
-          "3. Phát hiện và loại bỏ các đoạn văn bản bị lặp lại do lỗi quét khung hình (Deduplication).\n"
-          "4. Tuyệt đối chỉ trả về văn bản kết quả cuối cùng. Không được phép giải thích hoặc thêm văn bản dẫn chuyện.\n"
+          "Bạn là trợ lý khôi phục văn bản. Nhiệm vụ của bạn là sửa lỗi chính tả, thêm dấu, tách từ dính liền, và tóm gọn lại thông tin dễ hiểu nhất.\n"
+          "Tuyệt đối chỉ in ra kết quả, không giải thích dài dòng.\n"
+          "---VÍ DỤ---\n"
+          "Đầu vào: UONO LẠNH THÁNH PHÁN mch extract from malt barleyl, duờng, sũa bột tách kem\n"
+          "Đầu ra: Uống lạnh. Thành phần: Mạch nha, đường, sữa bột tách kem.\n"
+          "-----------\n"
           "<|im_end|>\n"
           "<|im_start|>user\n"
-          "$chunkText\n"
-          "<|im_end|>\n"
+          "Đầu vào: $chunkText\n"
+          "Đầu ra:<|im_end|>\n"
           "<|im_start|>assistant\n";
 
       developer_log.log(
@@ -171,13 +173,14 @@ class LocalAiEngineService {
       return finalClean;
     } catch (e) {
       developer_log.log('Lỗi Try-Catch: $e', name: 'AI_TELEMETRY_ERROR');
+      localAiProvider.setError();
       return "";
     } finally {
       stuckTimer?.cancel();
       await _streamSubscription?.cancel();
       _streamSubscription = null;
       await Future.delayed(Duration(milliseconds: _isLowEndDevice ? 300 : 150));
-      _isProcessing = false;
+      localAiProvider.setReady(true);
       developer_log.log(
         '--- KẾT THÚC PHIÊN XỬ LÝ CHUNK ---',
         name: 'AI_TELEMETRY',
@@ -187,6 +190,6 @@ class LocalAiEngineService {
 
   void dispose() {
     _streamSubscription?.cancel();
-    _isReady = false;
+    localAiProvider.setDisposed();
   }
 }

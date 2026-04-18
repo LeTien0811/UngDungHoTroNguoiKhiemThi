@@ -24,7 +24,7 @@ class _BodyState extends State<Body> {
   Widget build(BuildContext context) {
     return PopScope(
         canPop: false,
-        onPopInvoked: (didPop) {
+        onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
           HapticFeedback.heavyImpact();
         },
@@ -37,13 +37,9 @@ class _BodyState extends State<Body> {
             explicitChildNodes: false,
             child: SafeArea(
               child: GestureDetector(
-                onDoubleTap: () {
-                  HapticFeedback.heavyImpact();
-                  SnackbarUtil.show(context, message: "🎙️ ĐANG NGHE LỆNH...", bgColor: MyColors.highlightYellow);
-                },
                 onLongPress: () {
                   HapticFeedback.mediumImpact();
-                  SnackbarUtil.show(context, message:"🔊 Đưa camera cách hộp thuốc 1 gang tay...", bgColor: MyColors.textWhite);
+                  SnackbarUtil.show(context, message:"🔊 Hãy đặt câu hỏi", bgColor: MyColors.textWhite);
                 },
                 onVerticalDragEnd: (details) {
                   if (details.primaryVelocity! < -300) {
@@ -51,7 +47,6 @@ class _BodyState extends State<Body> {
                     SnackbarUtil.show(context,message:  "Chuyển sang: Đọc Thông Tin", bgColor:  MyColors.actionCyan);
                     widget.model.globalProvider.stopSpeaking();
                     getIt<NavigatorService>().navigateTo(CameraFeatures.routerName);
-
                   }
                 },
 
@@ -67,7 +62,7 @@ class _BodyState extends State<Body> {
                           height: MediaQuery.of(context).size.width * 0.8,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: MyColors.textWhite.withOpacity(0.3), width: 4),
+                            border: Border.all(color: MyColors.textWhite.withValues(alpha: 0.3), width: 4),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,

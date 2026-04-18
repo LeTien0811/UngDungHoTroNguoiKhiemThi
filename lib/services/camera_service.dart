@@ -41,6 +41,7 @@ class CameraService {
         await controller!.dispose();
         controller = null;
       }
+
       camera = await getFirstCamera();
       if (camera == null) return;
 
@@ -56,6 +57,8 @@ class CameraService {
       await controller!.initialize();
       await controller!.setFocusMode(FocusMode.auto);
 
+      await Future.delayed(const Duration(milliseconds: 1500));
+
       cameraProvider.setReady(true);
     }, 'CameraService.init');
   }
@@ -69,7 +72,7 @@ class CameraService {
 
       if (controller!.value.isStreamingImages) return;
 
-      if (cameraProvider.isDisposed || controller == null || !cameraProvider.isReady) {
+      if (cameraProvider.cameraStatus != CameraStatus.ready || controller == null) {
         throw Exception('Camera đang bận hoặc chưa sẵn sàng');
       }
 
@@ -77,7 +80,7 @@ class CameraService {
           CameraImage image,
           ) async {
 
-        if (cameraProvider.isDisposed || cameraProvider.isProcessing) return;
+        if (cameraProvider.cameraStatus == CameraStatus.uninitialized || cameraProvider.cameraStatus != CameraStatus.processing) return;
 
         final int currentMs = DateTime.now().millisecondsSinceEpoch;
 
@@ -91,10 +94,12 @@ class CameraService {
         try {
 
           bool isProcess = await processDetech(image);
+
           if(isProcess) {
             await stopStream();
-            cameraProvider.setCameraStatus(CameraStatus.idle);
+            return;
           }
+
         } catch (e) {
             developer_log.log('Lỗi luồng: $e', name: 'stream.camera_service');
         } finally {
@@ -108,8 +113,14 @@ class CameraService {
     try {
       if (controller != null && controller!.value.isStreamingImages) {
         await controller!.stopImageStream();
+        cameraProvider.setProcessing(false);
+        cameraProvider.setCameraStatus(CameraStatus.idle);
         return;
       }
+      developer_log.log(
+        'Dừng camera',
+        name: 'CameraViewModel.stopStream',
+      );
       return;
     } catch (e) {
       developer_log.log(
@@ -121,6 +132,10 @@ class CameraService {
 
   Future<void> dispose() async {
     try {
+      developer_log.log(
+        'Hủy camera',
+        name: 'CameraViewModel.stopStream',
+      );
       if (controller != null) {
         if (controller!.value.isStreamingImages) {
           await controller!.stopImageStream();
