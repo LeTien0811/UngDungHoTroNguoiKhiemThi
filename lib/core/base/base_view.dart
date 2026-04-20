@@ -1,5 +1,5 @@
 import 'package:build_access/core/base/base_model.dart';
-import 'package:build_access/providers/locator.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

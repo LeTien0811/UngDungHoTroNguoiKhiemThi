@@ -1,5 +1,5 @@
 import 'package:build_access/core/base/base_model.dart';
-import 'package:build_access/setups/permissions_setup.dart';
+import 'package:build_access/core/setups/permissions_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';

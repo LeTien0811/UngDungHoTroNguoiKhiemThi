@@ -1,16 +1,16 @@
 import 'dart:typed_data';
 import 'package:build_access/core/base/base_service.dart';
-import 'package:build_access/core/camera/image_handle.dart';
+import 'package:build_access/core/image/image_handle.dart';
 import 'package:build_access/core/utils/file_utils.dart';
 import 'package:build_access/core/image/device_orientation.dart';
-import 'package:build_access/engine/handle_image_worker_service.dart';
+import 'package:build_access/core/scan/ocr_preprocessor.dart';
 import 'package:build_access/enum/config.dart';
-import 'package:build_access/ml/my_text_recognizer.dart';
+import 'package:build_access/core/ml/my_text_recognizer.dart';
 import 'package:build_access/models/scan/process_image_result.dart';
 import 'package:build_access/providers/global_provider.dart';
-import 'package:build_access/providers/locator.dart';
-import 'package:build_access/services/camera_service.dart';
-import 'package:build_access/services/scan/process_case_result.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/core/camera/camera_hardware_manager.dart';
+import 'package:build_access/core/scan/process_case_result.dart';
 import 'package:camera/camera.dart';
 import 'dart:ui' as ui;
 
@@ -19,20 +19,20 @@ import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 class AnalyzeTextPositionAndReadText extends BaseService {
 
   @override
-  Future<void> init() async{
-
-  }
-
-  @override
   String get serviceName => 'AnalyzeTextPositionAndReadText';
   final ImageHandle _imageHandle = ImageHandle();
   final MyTextRecognizer _myTextRecognizer = MyTextRecognizer();
   final ProcessCaseResult processCaseResult = ProcessCaseResult();
-  final HandleImageWorkerService _handleImageWorkerService =
-  getIt<HandleImageWorkerService>();
+  final OcrPreprocessor _handleImageWorkerService =
+  getIt<OcrPreprocessor>();
+
+  @override
+  Future<void> init() async{
+
+  }
 
   Future<ProcessImageResult?> analyzeTextPositionAndReadText({
-    required CameraService cameraService,
+    required CameraHardwareManager cameraHardwareManager,
     required CameraImage imageFromFrame,
     required GlobalProvider globalProvider,
     required ui.Size previewSize,
@@ -40,8 +40,8 @@ class AnalyzeTextPositionAndReadText extends BaseService {
     return await runSafe<ProcessImageResult>(() async {
       final formatResult = await _imageHandle.processImageFromFrame(
         imageFromFrame,
-        cameraService.camera!,
-        cameraService.controller!,
+        cameraHardwareManager.camera!,
+        cameraHardwareManager.controller!,
       );
 
       if (formatResult.image == null ||
@@ -81,10 +81,10 @@ class AnalyzeTextPositionAndReadText extends BaseService {
         ImageDebugUtils.saveDebugImage(debugBytes);
       }
 
-      final int rotationDegree = resolveRotationDegree(cameraService);
+      final int rotationDegree = resolveRotationDegree(cameraHardwareManager);
 
       log(
-        'OCR full-frame rotation=$rotationDegree sensor=${cameraService.camera!.sensorOrientation} device=${cameraService.controller!.value.deviceOrientation} size=${sensorWidth}x$sensorHeight',
+        'OCR full-frame rotation=$rotationDegree sensor=${cameraHardwareManager.camera!.sensorOrientation} device=${cameraHardwareManager.controller!.value.deviceOrientation} size=${sensorWidth}x$sensorHeight',
       );
 
       InputImage optimizedInputImage = _imageHandle.createInputImageFromBytes(

@@ -6,7 +6,7 @@ import 'dart:developer' as developer_log;
 
 class CommandMatcher {
   final KeywordMatcher _keywordMatcher = KeywordMatcher();
-  IntentType? process(String userCommand) {
+  IntentType process(String userCommand) {
     try {
       String text = TextNormalizer.normalize(userCommand);
 
@@ -16,7 +16,7 @@ class CommandMatcher {
         return extract;
       }
 
-      IntentType? bestIntent;
+      IntentType bestIntent = IntentType.unknown;
       double maxScore = 0.0;
 
       _keywordMatcher.keywords.forEach((intent, keywords) {
@@ -29,13 +29,10 @@ class CommandMatcher {
         }
       });
 
-      if (maxScore > 0.75) {
-        return bestIntent;
-      }
-      return null;
+      return bestIntent;
     } catch (e) {
       developer_log.log('Lỗi CommandMatcher: $e', name: 'CommandMatcher');
-      return null;
+      return IntentType.unknown;
     }
   }
 }

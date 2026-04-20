@@ -1,6 +1,6 @@
 import 'dart:ui';
-import 'package:build_access/providers/locator.dart';
-import 'package:build_access/services/navigator_service.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/core/utils/navigator_service.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
 import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/features/reading_result_feature/components/organic_glow_painter.dart';

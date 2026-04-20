@@ -1,14 +1,14 @@
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/providers/local_ai_provider.dart';
-import 'package:build_access/providers/locator.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/global_provider.dart';
-import 'package:build_access/services/local_ai_engine_service.dart';
+import 'package:build_access/core/local_ai/local_ai_engine.dart';
 import 'dart:developer' as developer_log;
 
 class ReadingResultViewModel extends BaseModel {
   final GlobalProvider globalProvider = getIt<GlobalProvider>();
-  final LocalAiEngineService localEngineService = getIt<LocalAiEngineService>();
+  final LocalAIEngine localAIEngine = getIt<LocalAIEngine>();
   final LocalAiProvider localAiProvider = getIt<LocalAiProvider>();
   String rawText = '';
   AiType type = AiType.error;
@@ -74,7 +74,7 @@ class ReadingResultViewModel extends BaseModel {
         String chunk = chunks[i].trim();
         if (chunk.length < 5) continue;
 
-        String correctedChunk = await localEngineService.processChunk(chunk);
+        String correctedChunk = await localAIEngine.processChunk(chunk);
 
         if (localAiProvider.status != LocalAiStatus.processing) break;
 

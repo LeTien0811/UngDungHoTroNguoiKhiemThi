@@ -1,4 +1,4 @@
-import 'package:build_access/services/camera_service.dart';
+import 'package:build_access/core/camera/camera_hardware_manager.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';

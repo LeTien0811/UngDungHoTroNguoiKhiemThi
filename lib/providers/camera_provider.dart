@@ -52,18 +52,17 @@ class CameraProvider extends BaseModel {
       return;
     }
     cameraStatus = CameraStatus.uninitialized;
-
     notifyListeners();
     return;
   }
 
-  void setProcessing(bool isProp) {
+  void setProcessing() {
     cameraStatus = CameraStatus.processing;
     notifyListeners();
     return;
   }
 
-  void setDisposed(bool isProp) {
+  void setDisposed() {
     cameraStatus = CameraStatus.uninitialized;
     notifyListeners();
     return;

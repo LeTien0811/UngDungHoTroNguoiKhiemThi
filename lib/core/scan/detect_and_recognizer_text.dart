@@ -2,18 +2,18 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:build_access/core/base/base_service.dart';
 import 'package:build_access/models/scan/process_image_result.dart';
-import 'package:build_access/services/scan/process_case_result.dart';
-import 'package:build_access/core/camera/image_handle.dart';
+import 'package:build_access/core/scan/process_case_result.dart';
+import 'package:build_access/core/image/image_handle.dart';
 import 'package:build_access/core/utils/file_utils.dart';
 import 'package:build_access/core/image/coordinate_mapper.dart';
 import 'package:build_access/core/image/device_orientation.dart';
-import 'package:build_access/engine/handle_image_worker_service.dart';
+import 'package:build_access/core/scan/ocr_preprocessor.dart';
 import 'package:build_access/enum/config.dart';
-import 'package:build_access/ml/my_object_detector.dart';
-import 'package:build_access/ml/my_text_recognizer.dart';
+import 'package:build_access/core/ml/my_object_detector.dart';
+import 'package:build_access/core/ml/my_text_recognizer.dart';
 import 'package:build_access/providers/global_provider.dart';
-import 'package:build_access/providers/locator.dart';
-import 'package:build_access/services/camera_service.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/core/camera/camera_hardware_manager.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
@@ -26,8 +26,8 @@ class DetectAndRecognizerText extends BaseService {
   final MyTextRecognizer _myTextRecognizer = MyTextRecognizer();
   final MyObjectDetector _myObjectDetector = MyObjectDetector();
   final ProcessCaseResult processCaseResult = ProcessCaseResult();
-  final HandleImageWorkerService _handleImageWorkerService =
-      getIt<HandleImageWorkerService>();
+  final OcrPreprocessor _handleImageWorkerService =
+      getIt<OcrPreprocessor>();
 
   ui.Rect? _lastBox;
 
@@ -83,7 +83,7 @@ class DetectAndRecognizerText extends BaseService {
   }
 
   Future<ProcessImageResult?> detectObjectAndReadTextFromInputImage({
-    required CameraService cameraService,
+    required CameraHardwareManager cameraHardwareManager,
     required CameraImage imageFromFrame,
     required GlobalProvider globalProvider,
     required ui.Size previewSize,
@@ -92,8 +92,8 @@ class DetectAndRecognizerText extends BaseService {
 
       final formatResult = await _imageHandle.processImageFromFrame(
         imageFromFrame,
-        cameraService.camera!,
-        cameraService.controller!,
+        cameraHardwareManager.camera!,
+        cameraHardwareManager.controller!,
       );
 
       if (formatResult.image == null ||
@@ -150,14 +150,14 @@ class DetectAndRecognizerText extends BaseService {
           mlKitRect: targetBox,
           imageSize: sensorSize,
           previewSize: previewSize,
-          sensorOrientation: cameraService.camera!.sensorOrientation,
+          sensorOrientation: cameraHardwareManager.camera!.sensorOrientation,
         );
 
         log(
           "CROP BIẾN: x:${realCoords['x']}, y:${realCoords['y']}, w:${realCoords['w']}, h:${realCoords['h']}",
         );
         log(
-          'CROP DEBUG preview=${previewSize.width}x${previewSize.height} sensor=${sensorSize.width}x${sensorSize.height} sensorOrientation=${cameraService.camera!.sensorOrientation}',
+          'CROP DEBUG preview=${previewSize.width}x${previewSize.height} sensor=${sensorSize.width}x${sensorSize.height} sensorOrientation=${cameraHardwareManager.camera!.sensorOrientation}',
         );
       }
 
@@ -187,7 +187,7 @@ class DetectAndRecognizerText extends BaseService {
       }
 
 
-      final int rotationDegree = resolveRotationDegree(cameraService);
+      final int rotationDegree = resolveRotationDegree(cameraHardwareManager);
 
       if (debugBytes.isNotEmpty) {
         ImageDebugUtils.saveDebugImage(
@@ -197,7 +197,7 @@ class DetectAndRecognizerText extends BaseService {
       }
 
       log(
-        'OCR detect rotation=$rotationDegree sensor=${cameraService.camera!.sensorOrientation} device=${cameraService.controller!.value.deviceOrientation} crop=${realCoords?['w']}x${realCoords?['h']}',
+        'OCR detect rotation=$rotationDegree sensor=${cameraHardwareManager.camera!.sensorOrientation} device=${cameraHardwareManager.controller!.value.deviceOrientation} crop=${realCoords?['w']}x${realCoords?['h']}',
       );
       final int finalW = (outW ~/ 2) * 2;
       final int finalH = (outH ~/ 2) * 2;

@@ -1,15 +1,15 @@
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/models/scan/process_image_result.dart';
-import 'package:build_access/services/scan/process_case_result.dart';
+import 'package:build_access/core/scan/process_case_result.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/features/reading_result_feature/reading_result_features.dart';
 import 'dart:developer' as developer_log;
 import 'package:build_access/providers/camera_provider.dart';
-import 'package:build_access/providers/locator.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/global_provider.dart';
-import 'package:build_access/services/camera_service.dart';
-import 'package:build_access/services/scan/detect_and_recognizer_text.dart';
-import 'package:build_access/services/navigator_service.dart';
+import 'package:build_access/core/camera/camera_hardware_manager.dart';
+import 'package:build_access/core/scan/detect_and_recognizer_text.dart';
+import 'package:build_access/core/utils/navigator_service.dart';
 import 'package:camera/camera.dart';
 import 'dart:ui' as ui;
 
@@ -19,7 +19,7 @@ class CameraViewModel extends BaseModel {
   static const int _requiredStableSuccessFrames = 2;
   int _streamStartedAtMs = 0;
   int _stableSuccessFrames = 0;
-  final CameraService cameraService = getIt<CameraService>();
+  final CameraViewModel cameraViewService = getIt<CameraViewModel>();
   final GlobalProvider globalProvider = getIt<GlobalProvider>();
   final CameraProvider cameraProvider = getIt<CameraProvider>();
   final ProcessCaseResult processCaseResult = ProcessCaseResult();
@@ -31,7 +31,7 @@ class CameraViewModel extends BaseModel {
       globalProvider.speakQueue(
         'Bắt đầu tạo camera và lấy nét vật thể vui lòng đưa máy đối diện vật muốn và chờ trong giây lát',
       );
-      await cameraService.init();
+      await cameraViewService.init();
 
       await detectAndRecognizerText.init();
 

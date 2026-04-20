@@ -3,7 +3,7 @@ import 'package:build_access/models/scan/process_format_input_image_result.dart'
 import 'package:build_access/models/scan/process_image_result.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/providers/camera_provider.dart';
-import 'package:build_access/providers/locator.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
 
 class ProcessCaseResult {
   final CameraProvider cameraProvider = getIt<CameraProvider>();
