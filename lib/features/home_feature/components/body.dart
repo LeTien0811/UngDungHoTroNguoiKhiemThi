@@ -5,7 +5,7 @@ import 'package:build_access/features/home_feature/components/derector_text.dart
 import 'package:build_access/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:build_access/constant/color.dart';
-import 'package:build_access/core/utils/snackbar_util.dart';
+import 'package:build_access/widgets/snackbar_util.dart';
 import 'package:flutter/services.dart';
 
 class Body extends StatefulWidget {
@@ -45,7 +45,6 @@ class _BodyState extends State<Body> {
                   if (details.primaryVelocity! < -300) {
                     HapticFeedback.lightImpact();
                     SnackbarUtil.show(context,message:  "Chuyển sang: Đọc Thông Tin", bgColor:  MyColors.actionCyan);
-                    widget.model.globalProvider.stopSpeaking();
                     getIt<NavigatorService>().navigateTo(CameraFeatures.routerName);
                   }
                 },

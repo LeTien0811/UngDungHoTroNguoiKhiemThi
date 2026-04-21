@@ -20,7 +20,7 @@ class HomeFeatures extends StatelessWidget {
           }
           return Body(model: model,);
         },
-        onModelReady: (model) { model.initializeSystem();},
+        onModelReady: (model) {},
         onModelDispose: (model) { model.dispose(); },
         child: null
     );

@@ -1,8 +1,34 @@
 import 'dart:developer' as developer_log;
+import 'dart:typed_data';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 
-class OpenCVProcess {
+class OpenCVVisionAlgorithm {
   static const int targetLongEdge = 1280;
+
+  static cv.Mat safeCrop(cv.Mat originalMat, int cx, int cy, int cw, int ch, double paddingRatio) {
+    try {
+      final int imgWidth = originalMat.cols;
+      final int imgHeight = originalMat.rows;
+
+      final int padX = (cw * paddingRatio).round();
+      final int padY = (ch * paddingRatio).round();
+
+      final int safeX = (cx - padX).clamp(0, imgWidth - 1);
+      final int safeY = (cy - padY).clamp(0, imgHeight - 1);
+
+      final int targetMaxW = cw + (padX * 2);
+      final int targetMaxH = ch + (padY * 2);
+
+      final int safeW = targetMaxW.clamp(1, imgWidth - safeX);
+      final int safeH = targetMaxH.clamp(1, imgHeight - safeY);
+
+      final cv.Rect safeRect = cv.Rect(safeX, safeY, safeW, safeH);
+      return originalMat.region(safeRect).clone();
+    } catch (e) {
+      developer_log.log('Lỗi Safe Crop: $e', name: 'OpenCvVisionAlgorithm');
+      return originalMat.clone();
+    }
+  }
 
   // AI-added: Ảnh crop từ camera thường nhỏ, tương phản thấp và hơi nghiêng.
   // Hàm này tăng độ đọc được của chữ trước OCR nhưng vẫn giữ ảnh grayscale
@@ -56,6 +82,35 @@ class OpenCVProcess {
       developer_log.log('Xử lý OCR thất bại: $e', name: 'WORKER_OPENCV');
       working.dispose();
       return input.clone();
+    }
+  }
+
+  static Uint8List packToNV21Bytes(cv.Mat processedMat) {
+    try {
+      final int w = processedMat.cols;
+      final int h = processedMat.rows;
+
+      final int finalW = (w ~/ 2) * 2;
+      final int finalH = (h ~/ 2) * 2;
+
+      final int yLength = finalW * finalH;
+      final int uvLength = (yLength ~/ 2);
+      final Uint8List nv21Bytes = Uint8List(yLength + uvLength);
+
+      final Uint8List matBytes = processedMat.data;
+
+      if (matBytes.length >= yLength) {
+        nv21Bytes.setRange(0, yLength, matBytes.sublist(0, yLength));
+      } else {
+        nv21Bytes.setRange(0, matBytes.length, matBytes);
+      }
+
+      nv21Bytes.fillRange(yLength, yLength + uvLength, 128);
+
+      return nv21Bytes;
+    } catch (e) {
+      developer_log.log('Lỗi ép kiểu NV21: $e', name: 'OpenCvVisionAlgorithm');
+      return Uint8List(0);
     }
   }
 

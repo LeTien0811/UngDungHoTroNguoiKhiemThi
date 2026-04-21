@@ -3,6 +3,7 @@ import 'package:build_access/core/utils/navigator_service.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
 import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/features/reading_result_feature/reading_result_features.dart';
+import 'package:build_access/features/splash_feature/splash_feature.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,22 +14,23 @@ void main() async {
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   setupDependency();
-  runApp(const MyApp());
+  runApp(const HoTroNguoiKhiemThiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HoTroNguoiKhiemThiApp extends StatelessWidget {
+  const HoTroNguoiKhiemThiApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: getIt<NavigatorService>().navigatorKey,
-      home: const HomeFeatures(),
+      home: const SplashFeature(),
       routes: {
         CameraFeatures.routerName: (context) => const CameraFeatures(),
         HomeFeatures.routerName: (context) => const HomeFeatures(),
         ReadingResultFeatures.routeName: (context) =>
             const ReadingResultFeatures(),
+        SplashFeature.routerName: (context) => const SplashFeature(),
       },
     );
   }

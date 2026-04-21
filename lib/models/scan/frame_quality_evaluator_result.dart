@@ -1,9 +1,9 @@
 import 'package:build_access/enum/config.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
-class ProcessFormatInputImageResult {
-  final ProcessStatus status;
+class FrameQualityEvaluatorResult {
+  final ScanStatus status;
   final InputImage? image;
 
-  ProcessFormatInputImageResult(this.status, {this.image});
+  FrameQualityEvaluatorResult({required this.status, this.image});
 }

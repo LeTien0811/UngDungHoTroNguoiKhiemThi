@@ -4,32 +4,26 @@ import 'package:build_access/enum/config.dart';
 class LocalAiProvider extends BaseModel {
   LocalAiStatus status = LocalAiStatus.uninitialized;
 
-  void setReady(bool isProp) {
-    if (isProp) {
-      status = LocalAiStatus.ready;
+  void _setStatus(LocalAiStatus newStatus) {
+    if (status != newStatus) {
+      status = newStatus;
       notifyListeners();
-      return;
     }
-    status = LocalAiStatus.uninitialized;
-    notifyListeners();
-    return;
+  }
+
+  void setReady(bool isReady) {
+    _setStatus(isReady ? LocalAiStatus.ready : LocalAiStatus.uninitialized);
   }
 
   void setProcessing() {
-    status = LocalAiStatus.processing;
-    notifyListeners();
-    return;
+    _setStatus(LocalAiStatus.processing);
   }
 
   void setDisposed() {
-    status = LocalAiStatus.uninitialized;
-    notifyListeners();
-    return;
+    _setStatus(LocalAiStatus.uninitialized);
   }
 
   void setError() {
-    status = LocalAiStatus.error;
-    notifyListeners();
-    return;
+    _setStatus(LocalAiStatus.error);
   }
 }

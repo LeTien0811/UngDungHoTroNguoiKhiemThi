@@ -3,15 +3,15 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:build_access/config/open_cv.dart';
 import 'package:build_access/core/base/base_service.dart';
-import 'package:build_access/core/image/open_cv_process.dart';
+import 'package:build_access/core/image/opencv_vision_algorithm.dart';
 import 'package:build_access/core/isolate/isolate_messages.dart';
-import 'package:build_access/core//isolate/long_live_worker.dart';
+import 'package:build_access/core/isolate/long_live_worker.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'dart:developer' as developer_log;
 
 class OcrPreprocessor extends BaseService {
   @override
-  String get serviceName => 'HandleImageWorkerService';
+  String get serviceName => 'OcrPreprocessor';
 
   late final LongLivedWorker<void, OpenCVPayload, OpenCVResult> _worker;
 
@@ -55,22 +55,17 @@ class OcrPreprocessor extends BaseService {
 
           if (cx != null && cy != null && cw != null && ch != null) {
             developer_log.log('crop: $cx, $cy, $cw, $ch');
-            final rect = cv.Rect(
-              cx.clamp(0, w - 1),
-              cy.clamp(0, h - 1),
-              cw.clamp(1, w - cx),
-              ch.clamp(1, h - cy),
-            );
-            final cropped = mat.region(rect).clone();
+            final cropped = OpenCVVisionAlgorithm.safeCrop(mat, cx, cy, cw, ch, 0.15);
             mat.dispose();
             mat = cropped;
           }
 
-          final cv.Mat processed = OpenCVProcess.prepareImageForOcr(mat);
+          final cv.Mat processed = OpenCVVisionAlgorithm.prepareImageForOcr(mat);
           mat.dispose();
           mat = processed;
 
-          final Uint8List resultRaw = Uint8List.fromList(mat.data);
+          final Uint8List nv21ReadyBytes = OpenCVVisionAlgorithm.packToNV21Bytes(mat);
+
           final int outW = mat.cols;
           final int outH = mat.rows;
           Uint8List debugBytes = Uint8List(0);
@@ -81,7 +76,7 @@ class OcrPreprocessor extends BaseService {
           mat.dispose();
 
           message.replyPort.send(
-            OpenCVResult(resultRaw, debugBytes, outW, outH),
+            OpenCVResult(nv21ReadyBytes, debugBytes, outW, outH),
           );
         } catch (e) {
           developer_log.log('Loi OpenCV: $e', name: 'WORKER_OPENCV');

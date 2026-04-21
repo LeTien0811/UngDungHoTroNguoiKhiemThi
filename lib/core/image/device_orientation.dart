@@ -1,4 +1,4 @@
-import 'package:build_access/core/camera/camera_hardware_manager.dart';
+import 'package:build_access/services/camera_hardware_serivce.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -10,23 +10,27 @@ final orientationsCheck = {
   DeviceOrientation.landscapeRight: 270,
 };
 
-int checkRotation(dynamic metadata) {
-  int rotationDegrees = 0;
-  switch(metadata.rotation) {
-    case InputImageRotation.rotation90deg: rotationDegrees = 90; break;
-    case InputImageRotation.rotation180deg: rotationDegrees = 180; break;
-    case InputImageRotation.rotation270deg: rotationDegrees = 270; break;
-    default: break;
+InputImageRotation getRotation(int degree) {
+  switch (degree) {
+    case 0:
+      return InputImageRotation.rotation0deg;
+    case 90:
+      return InputImageRotation.rotation90deg;
+    case 180:
+      return InputImageRotation.rotation180deg;
+    case 270:
+      return InputImageRotation.rotation270deg;
+    default:
+      return InputImageRotation.rotation0deg;
   }
-  return rotationDegrees;
 }
 
-int resolveRotationDegree(CameraService cameraService) {
-  final int sensorOrientation = cameraService.camera!.sensorOrientation;
+int resolveRotationDegree(CameraHardwareService hardWare) {
+  final int sensorOrientation = hardWare.camera!.sensorOrientation;
   final DeviceOrientation deviceOrientation =
-      cameraService.controller!.value.deviceOrientation;
+      hardWare.controller!.value.deviceOrientation;
   final CameraLensDirection lensDirection =
-      cameraService.camera!.lensDirection;
+      hardWare.camera!.lensDirection;
 
   return getRotationCompensation(
     sensorOrientation,
@@ -62,3 +66,6 @@ int getRotationCompensation(int sensorOrientation, DeviceOrientation deviceOrien
   }
   return rotationCompensation;
 }
+
+
+

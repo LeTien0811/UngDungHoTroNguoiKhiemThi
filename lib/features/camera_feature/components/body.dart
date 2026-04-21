@@ -1,3 +1,5 @@
+import 'package:build_access/services/camera_hardware_serivce.dart';
+import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/view_models/camera_view_model.dart';
 import 'package:camera/camera.dart';
@@ -17,7 +19,6 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Tạo hiệu ứng thanh quét chạy lên chạy xuống cho đẹp
     _scannerController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -45,7 +46,9 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: CameraPreview(widget.model.cameraService.controller!),
+              child: CameraPreview(
+                getIt<CameraHardwareService>().controller!,
+              ),
             )
           else
             const Center(child: CircularProgressIndicator(color: Colors.white)),

@@ -2,8 +2,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'dart:developer' as developer_log;
 
-
-class CameraHardwareManager {
+class CameraHardwareService {
   CameraController? controller;
   CameraDescription? camera;
 
@@ -24,7 +23,7 @@ class CameraHardwareManager {
     } catch (e) {
       developer_log.log(
         "Lỗi khởi tạo Camera: $e",
-        name: 'CameraService.getFirstCamera',
+        name: 'CameraHardwareService.getFirstCamera',
       );
       return null;
     }
@@ -32,57 +31,68 @@ class CameraHardwareManager {
   }
 
   Future<bool> init() async {
-      try {
-        if (controller != null) {
-          if (controller!.value.isInitialized) return true;
-
-          await controller!.dispose();
-          controller = null;
-        }
-
-        camera = await getBackCamera();
-        if (camera == null) return false;
-
-        controller = CameraController(
-          camera!,
-          ResolutionPreset.medium,
-          enableAudio: false,
-          imageFormatGroup: Platform.isAndroid
-              ? ImageFormatGroup.nv21
-              : ImageFormatGroup.bgra8888,
-        );
-
-        await controller!.initialize();
-        return true;
-      } catch(e) {
-        developer_log.log('crash init camera', name: "cameraHardwareManager.init");
-        return false;
-      }
-  }
-
-  Future<bool> startFocus() async {
     try {
-      if(!isInitialized) return false;
-      await controller?.setFocusMode(FocusMode.auto);
+      if (controller != null) {
+        if (controller!.value.isInitialized) return true;
+
+        await controller!.dispose();
+        controller = null;
+      }
+
+      camera = await getBackCamera();
+      if (camera == null) return false;
+
+      controller = CameraController(
+        camera!,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
+      );
+
+      await controller!.initialize();
       return true;
-    } catch(e) {
-      developer_log.log('error on startFocus HardWare: $e', name: 'CameraHardwareManager.startFocus');
+    } catch (e) {
+      developer_log.log(
+        'crash init camera',
+        name: "CameraHardwareService.init",
+      );
       return false;
     }
   }
 
-  Future<void> startRawStream<T>(Future<T> Function({required CameraImage image}) onProcessFrame) async{
+  Future<bool> startFocus() async {
     try {
-      if(isInitialized) {
+      if (!isInitialized) return false;
+      await controller?.setFocusMode(FocusMode.auto);
+      return true;
+    } catch (e) {
+      developer_log.log(
+        'error on startFocus HardWare: $e',
+        name: 'CameraHardwareService.startFocus',
+      );
+      return false;
+    }
+  }
+
+  Future<void> startRawStream<T>(
+    Future<T> Function(CameraImage image) onProcessFrame,
+  ) async {
+    try {
+      if (!isInitialized) {
         throw Exception("Chưa khởi tạo camera");
       }
 
-      await controller!.startImageStream((CameraImage imageOnFrame) async{
-        await onProcessFrame(image: imageOnFrame);
+      await controller!.startImageStream((CameraImage imageOnFrame) async {
+        await onProcessFrame(imageOnFrame);
       });
 
-    } catch(e) {
-      developer_log.log('error on Start RawStream HardWare: $e', name: 'CameraHardwareManager.startRawStream');
+    } catch (e) {
+      developer_log.log(
+        'error on Start RawStream HardWare: $e',
+        name: 'CameraHardwareService.startRawStream',
+      );
       return;
     }
   }
@@ -91,17 +101,14 @@ class CameraHardwareManager {
     try {
       if (controller != null && controller!.value.isStreamingImages) {
         await controller!.stopImageStream();
-        developer_log.log(
-          'Dừng camera',
-          name: 'CameraViewModel.stopStream',
-        );
+        developer_log.log('Dừng camera', name: 'CameraHardwareService.stopStream');
         return true;
       }
       return false;
     } catch (e) {
       developer_log.log(
         'Lỗi dừng stream: $e',
-        name: 'CameraViewModel.stopStream',
+        name: 'CameraHardwareService.stopStream',
       );
       return false;
     }
@@ -109,10 +116,7 @@ class CameraHardwareManager {
 
   Future<bool> dispose() async {
     try {
-      developer_log.log(
-        'Hủy camera',
-        name: 'CameraViewModel.stopStream',
-      );
+      developer_log.log('Hủy camera', name: 'CameraHardwareService.stopStream');
       if (controller != null) {
         if (controller!.value.isStreamingImages) {
           await controller!.stopImageStream();
@@ -123,7 +127,7 @@ class CameraHardwareManager {
       }
       return false;
     } catch (e) {
-      developer_log.log("Dispose error: $e", name: 'CameraViewModel.dispose',);
+      developer_log.log("Dispose error: $e", name: 'CameraHardwareService.dispose');
       return false;
     }
   }

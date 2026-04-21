@@ -13,7 +13,7 @@ enum LocalAiStatus {
   processing,
 }
 
-enum ProcessStatus { ok, blur, recapture, error }
+enum ScanStatus { ok, blur, notFoundObject, notFoundText, recapture, error }
 
 enum ErrorFrame { blur, recapture }
 

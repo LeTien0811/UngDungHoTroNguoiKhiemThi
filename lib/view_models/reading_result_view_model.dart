@@ -2,12 +2,13 @@ import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/enum/config.dart';
 import 'package:build_access/providers/local_ai_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/providers/global_provider.dart';
 import 'package:build_access/core/local_ai/local_ai_engine.dart';
 import 'dart:developer' as developer_log;
 
+import 'package:build_access/providers/voice_interaction_provider.dart';
+
 class ReadingResultViewModel extends BaseModel {
-  final GlobalProvider globalProvider = getIt<GlobalProvider>();
+  final VoiceInteractionProvider voiceInteractionProvider = getIt<VoiceInteractionProvider>();
   final LocalAIEngine localAIEngine = getIt<LocalAIEngine>();
   final LocalAiProvider localAiProvider = getIt<LocalAiProvider>();
   String rawText = '';
@@ -21,8 +22,6 @@ class ReadingResultViewModel extends BaseModel {
       localAiProvider.setReady(true);
       notifyListeners();
 
-      if (!globalProvider.isReady) globalProvider.initializeSystem();
-
       if (localAiProvider.status == LocalAiStatus.ready) {
         await _runPipeline(rawText);
       }
@@ -32,7 +31,7 @@ class ReadingResultViewModel extends BaseModel {
   Future<void> _runPipeline(String rawText) async {
     await runSafe(() async {
       localAiProvider.setProcessing();
-      globalProvider.speakQueue("Đang xử lý, vui lòng chờ trong giây lát.");
+      voiceInteractionProvider.speak("Đang xử lý, vui lòng chờ trong giây lát.");
 
       final regex = RegExp(r'(?<=[.!?])\s+|\n\s*\n');
       List<String> sentences = rawText
@@ -83,7 +82,7 @@ class ReadingResultViewModel extends BaseModel {
         if (correctedChunk.isNotEmpty) {
           fullResponse += "$correctedChunk ";
           notifyListeners();
-          globalProvider.speakQueue(correctedChunk);
+          voiceInteractionProvider.speak(correctedChunk);
         }
       }
 
@@ -97,7 +96,7 @@ class ReadingResultViewModel extends BaseModel {
   @override
   void dispose() {
     localAiProvider.setDisposed();
-    globalProvider.stopSpeaking();
+    voiceInteractionProvider.stopSpeaking();
     super.dispose();
   }
 }

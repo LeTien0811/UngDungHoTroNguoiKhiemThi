@@ -33,7 +33,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
 
   void _onViewModelChange() {
     // Nếu AI ngừng nói, sóng sẽ chuyển động chậm lại hoặc nhỏ đi (tùy ý ní)
-    if (!widget.model.globalProvider.isSpeaking) {
+    if (!widget.model.voiceInteractionProvider.isSpeaking) {
       // _waveController.stop(); // Có thể dừng nếu muốn
     } else {
       if (!_waveController.isAnimating) _waveController.repeat();
@@ -136,7 +136,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       // Icon AI nhỏ xinh phía trên
                       Icon(
                         Icons.auto_awesome,
-                        color: widget.model.globalProvider.isSpeaking
+                        color: widget.model.voiceInteractionProvider.isSpeaking
                             ? const Color(0xFF4285F4)
                             : Colors.grey,
                         size: 30,
@@ -175,7 +175,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
               ),
 
               // 4. Chỉ báo "Đang nói" (Glow dot)
-              if (widget.model.globalProvider.isSpeaking)
+              if (widget.model.voiceInteractionProvider.isSpeaking)
                 Positioned(
                   top: 40,
                   right: 30,
