@@ -39,7 +39,7 @@ class HoTroNguoiKhiemThiApp extends StatelessWidget {
         VisionAsisstantFeature.routeName: (context) =>
             const VisionAsisstantFeature(),
         SplashFeature.routerName: (context) => const SplashFeature(),
-        OnboardingFeature.routerName: (context) => const OnboardingFeature()
+        OnboardingFeature.routerName: (context) => const OnboardingFeature()git
       },
     );
   }
