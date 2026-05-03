@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 
 abstract class BaseService {
   String get serviceName;

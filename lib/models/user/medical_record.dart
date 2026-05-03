@@ -1,22 +1,39 @@
 class MedicalRecord {
-  final String substance; // Ví dụ: Paracetamol
-  final String note;      // Ví dụ: Dị ứng nặng hơn khi dùng với thuốc tê
+  final String condition;
+  final String allergy;
+  final String emergencyContact;
 
-  MedicalRecord({required this.substance, required this.note});
+  MedicalRecord({
+    this.condition = "Không rõ",
+    this.allergy = "Không rõ",
+    this.emergencyContact = "Không rõ",
+  });
 
-  // Chuyển sang Map để lưu xuống database/json
+  MedicalRecord copyWith({
+    String? condition,
+    String? allergy,
+    String? emergencyContact,
+  }) {
+    return MedicalRecord(
+      condition: condition ?? this.condition,
+      allergy: allergy ?? this.allergy,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
-      'substance': substance,
-      'note': note,
+      'condition': condition,
+      'allergy': allergy,
+      'emergencyContact': emergencyContact,
     };
   }
 
-  // Khôi phục từ database/json
   factory MedicalRecord.fromMap(Map<String, dynamic> map) {
     return MedicalRecord(
-      substance: map['substance'] ?? '',
-      note: map['note'] ?? '',
+      condition: map['condition'] ?? "Không rõ",
+      allergy: map['allergy'] ?? "Không rõ",
+      emergencyContact: map['emergencyContact'] ?? "Không rõ",
     );
   }
 }

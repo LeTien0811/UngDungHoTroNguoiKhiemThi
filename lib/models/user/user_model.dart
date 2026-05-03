@@ -1,56 +1,67 @@
+import 'dart:convert';
+
+import 'package:build_access/models/user/medical_record.dart';
+
 class UserModel {
-  final name;
-  final int age;
+  final String name;
+  final String phone;
   final String address;
-  final String medicalHistory;
-
-  final int impairmentLevel;
-
-  final String emergencyPhone;
-
-  final String emergencyNotes;
+  final bool isSynced;
+  final MedicalRecord? medicalRecord;
 
   UserModel({
-    required this.name,
-    required this.age,
-    required this.address,
-    required this.medicalHistory,
-    required this.impairmentLevel,
-    required this.emergencyPhone,
-    required this.emergencyNotes,
+    this.name = "Không rõ",
+    this.phone = "Không rõ",
+    this.address = "Không rõ",
+    this.isSynced = false,
+    this.medicalRecord,
   });
 
   UserModel copyWith({
     String? name,
-    int? age,
+    String? phone,
     String? address,
-    String? medicalHistory,
-    int? impairmentLevel,
-    String? emergencyPhone,
-    String? emergencyNotes,
+    bool? isSynced,
+    MedicalRecord? medicalRecord,
   }) {
     return UserModel(
       name: name ?? this.name,
-      age: age ?? this.age,
+      phone: phone ?? this.phone,
       address: address ?? this.address,
-      medicalHistory: medicalHistory ?? this.medicalHistory,
-      impairmentLevel: impairmentLevel ?? this.impairmentLevel,
-      emergencyPhone: emergencyPhone ?? this.emergencyPhone,
-      emergencyNotes: emergencyNotes ?? this.emergencyNotes,
+      isSynced: isSynced ?? this.isSynced,
+      medicalRecord: medicalRecord ?? this.medicalRecord,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'name': name,
-      'age': age,
+      'phone': phone,
       'address': address,
-      'medicalHistory': medicalHistory,
-      'impairmentLevel': impairmentLevel,
-      'emergencyPhone': emergencyPhone,
-      'emergencyNotes': emergencyNotes,
+      'isSynced': isSynced,
     };
+
+    if (medicalRecord != null) {
+      map['medicalRecord'] = medicalRecord!.toMap();
+    }
+
+    return map;
   }
 
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      name: map['name'] ?? "Không rõ",
+      phone: map['phone'] ?? "Không rõ",
+      address: map['address'] ?? "Không rõ",
+      isSynced: map['isSynced'] ?? false,
+      medicalRecord: map['medicalRecord'] != null
+          ? MedicalRecord.fromMap(map['medicalRecord'])
+          : null,
+    );
+  }
 
+  String toJson() => json.encode(toMap());
+
+  factory UserModel.fromJson(String source) =>
+      UserModel.fromMap(json.decode(source));
 }

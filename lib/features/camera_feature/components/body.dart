@@ -1,6 +1,6 @@
-import 'package:build_access/services/camera_hardware_serivce.dart';
+import 'package:build_access/services/camera_hardware_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 import 'package:build_access/view_models/camera_view_model.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';

@@ -1,7 +1,7 @@
 import 'package:build_access/core/VoiceCommand/CommandMatcher/fuzzy_matcher.dart';
 import 'package:build_access/core/VoiceCommand/CommandMatcher/keyword_matcher.dart';
 import 'package:build_access/core/VoiceCommand/CommandMatcher/text_normalizer.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 import 'dart:developer' as developer_log;
 
 class CommandMatcher {
@@ -16,7 +16,7 @@ class CommandMatcher {
         return extract;
       }
 
-      IntentType bestIntent = IntentType.unknown;
+      IntentType bestIntent = IntentType.UNKNOWN;
       double maxScore = 0.0;
 
       _keywordMatcher.keywords.forEach((intent, keywords) {
@@ -32,7 +32,7 @@ class CommandMatcher {
       return bestIntent;
     } catch (e) {
       developer_log.log('Lỗi CommandMatcher: $e', name: 'CommandMatcher');
-      return IntentType.unknown;
+      return IntentType.UNKNOWN;
     }
   }
 }

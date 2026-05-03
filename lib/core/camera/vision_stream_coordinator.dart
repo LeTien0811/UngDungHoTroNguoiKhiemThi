@@ -1,9 +1,8 @@
-import 'package:build_access/services/camera_hardware_serivce.dart';
+import 'package:build_access/services/camera_hardware_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 import 'package:build_access/providers/camera_provider.dart';
 import 'dart:developer' as developer_log;
-
 import 'package:camera/camera.dart';
 
 class VisionStreamCoordinator {
@@ -68,14 +67,13 @@ class VisionStreamCoordinator {
           }
         } catch (e) {
           developer_log.log(
-            'error on startVisionLoop: $e',
+            'Lỗi xử lý khung hình (Đã bỏ qua để quét tiếp): $e',
             name: 'VisionStreamCoordinator.startVisionLoop',
           );
-          cameraHardwareManager.stopStream();
-          cameraProvider.setCameraStatus(CameraStatus.idle);
-          return;
         } finally {
-          cameraProvider.setProcessing(false);
+          if (cameraProvider.cameraStatus == CameraStatus.processing) {
+            cameraProvider.setProcessing(false);
+          }
         }
       });
     } catch (e) {

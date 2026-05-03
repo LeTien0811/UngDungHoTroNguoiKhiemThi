@@ -29,6 +29,10 @@ dependencies:
   google_mlkit_object_detection: ^0.15.1
   opencv_dart: ^2.2.1+4
   fasttext_flutter: ^0.1.2
+  audioplayers: ^6.6.0
+  flutter_secure_storage: ^10.0.0
+  torch_light: ^1.1.0
+  avatar_glow: ^3.0.1
 
 dependency_overrides:
   image: ^4.7.2
@@ -46,3 +50,5 @@ flutter:
     - assets/models/rec.opt
     - assets/models/cls.opt
     - assets/models/dict.txt
+    - assets/models/intent_v2_mobile_optimized.bin
+    - assets/sounds/effect/

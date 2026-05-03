@@ -80,14 +80,17 @@ class CameraHardwareService {
     Future<T> Function(CameraImage image) onProcessFrame,
   ) async {
     try {
-      if (!isInitialized) {
-        throw Exception("Chưa khởi tạo camera");
+      if (controller == null || !isInitialized) {
+        return;
+      }
+
+      if (isCameraStream) {
+        return;
       }
 
       await controller!.startImageStream((CameraImage imageOnFrame) async {
         await onProcessFrame(imageOnFrame);
       });
-
     } catch (e) {
       developer_log.log(
         'error on Start RawStream HardWare: $e',
@@ -101,7 +104,10 @@ class CameraHardwareService {
     try {
       if (controller != null && controller!.value.isStreamingImages) {
         await controller!.stopImageStream();
-        developer_log.log('Dừng camera', name: 'CameraHardwareService.stopStream');
+        developer_log.log(
+          'Dừng camera',
+          name: 'CameraHardwareService.stopStream',
+        );
         return true;
       }
       return false;
@@ -127,7 +133,10 @@ class CameraHardwareService {
       }
       return false;
     } catch (e) {
-      developer_log.log("Dispose error: $e", name: 'CameraHardwareService.dispose');
+      developer_log.log(
+        "Dispose error: $e",
+        name: 'CameraHardwareService.dispose',
+      );
       return false;
     }
   }

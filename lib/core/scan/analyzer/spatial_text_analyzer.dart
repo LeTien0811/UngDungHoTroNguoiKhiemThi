@@ -1,6 +1,5 @@
-import 'package:build_access/core/scan/analyzer/document_layout_analyzer.dart';
 import 'package:build_access/models/scan/scan_result.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 

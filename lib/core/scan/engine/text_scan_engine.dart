@@ -15,7 +15,7 @@ class ScanTextEngine {
 
   Future<RecognizedText> processImage(InputImage inputImage) async {
     try {
-      RecognizedText recognizedText = await textRecognizer!.processImage(
+      RecognizedText recognizedText = await textRecognizer.processImage(
         inputImage,
       );
       return recognizedText;

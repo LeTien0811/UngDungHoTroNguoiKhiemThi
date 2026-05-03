@@ -1,5 +1,5 @@
 import 'package:build_access/core/base/base_model.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 
 class CameraProvider extends BaseModel {
   CameraStatus cameraStatus = CameraStatus.uninitialized;

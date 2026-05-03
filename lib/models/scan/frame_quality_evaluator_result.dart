@@ -1,4 +1,4 @@
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class FrameQualityEvaluatorResult {

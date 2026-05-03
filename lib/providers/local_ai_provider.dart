@@ -1,10 +1,10 @@
 import 'package:build_access/core/base/base_model.dart';
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 
 class LocalAiProvider extends BaseModel {
-  LocalAiStatus status = LocalAiStatus.uninitialized;
+  AIStatus status = AIStatus.uninitialized;
 
-  void _setStatus(LocalAiStatus newStatus) {
+  void _setStatus(AIStatus newStatus) {
     if (status != newStatus) {
       status = newStatus;
       notifyListeners();
@@ -12,18 +12,18 @@ class LocalAiProvider extends BaseModel {
   }
 
   void setReady(bool isReady) {
-    _setStatus(isReady ? LocalAiStatus.ready : LocalAiStatus.uninitialized);
+    _setStatus(isReady ? AIStatus.ready : AIStatus.uninitialized);
   }
 
   void setProcessing() {
-    _setStatus(LocalAiStatus.processing);
+    _setStatus(AIStatus.processing);
   }
 
   void setDisposed() {
-    _setStatus(LocalAiStatus.uninitialized);
+    _setStatus(AIStatus.uninitialized);
   }
 
   void setError() {
-    _setStatus(LocalAiStatus.error);
+    _setStatus(AIStatus.error);
   }
 }

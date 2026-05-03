@@ -38,51 +38,61 @@ class OcrPreprocessor extends BaseService {
 
       if (message is WorkerTask<OpenCVPayload>) {
         final payload = message.data;
-        final Uint8List bytes = payload.bytes;
-        final int w = payload.w;
-        final int h = payload.h;
-        final int? cx = payload.cx;
-        final int? cy = payload.cy;
-        final int? cw = payload.cw;
-        final int? ch = payload.ch;
-        final int stride = payload.stride;
 
-        cv.Mat? mat = cv.Mat.fromList(h, stride, cv.MatType.CV_8UC1, bytes);
+        cv.Mat? currentMat;
+        cv.Mat? tempMat;
+
         try {
-          final matReal = mat.colRange(0, w).clone();
-          mat.dispose();
-          mat = matReal;
+          currentMat = cv.Mat.fromList(
+              payload.h,
+              payload.stride,
+              cv.MatType.CV_8UC1,
+              payload.bytes
+          );
 
-          if (cx != null && cy != null && cw != null && ch != null) {
-            developer_log.log('crop: $cx, $cy, $cw, $ch');
-            final cropped = OpenCVVisionAlgorithm.safeCrop(mat, cx, cy, cw, ch, 0.15);
-            mat.dispose();
-            mat = cropped;
+          tempMat = currentMat.colRange(0, payload.w).clone();
+          currentMat.dispose();
+          currentMat = tempMat;
+          tempMat = null;
+
+          if (payload.cx != null && payload.cy != null && payload.cw != null && payload.ch != null) {
+            tempMat = OpenCVVisionAlgorithm.safeCrop(
+                currentMat, payload.cx!, payload.cy!, payload.cw!, payload.ch!, 0.05
+            );
+            currentMat.dispose();
+            currentMat = tempMat;
+            tempMat = null;
           }
 
-          final cv.Mat processed = OpenCVVisionAlgorithm.prepareImageForOcr(mat);
-          mat.dispose();
-          mat = processed;
+          tempMat = OpenCVVisionAlgorithm.prepareImageForOcr(currentMat);
+          currentMat.dispose();
+          currentMat = tempMat;
+          tempMat = null;
 
-          final Uint8List nv21ReadyBytes = OpenCVVisionAlgorithm.packToNV21Bytes(mat);
+          final Uint8List nv21ReadyBytes = OpenCVVisionAlgorithm.packToNV21Bytes(currentMat);
 
-          final int outW = mat.cols;
-          final int outH = mat.rows;
+          final int outW = currentMat.cols;
+          final int outH = currentMat.rows;
           Uint8List debugBytes = Uint8List(0);
 
-          final (success, encoded) = cv.imencode(".jpg", mat);
-          if (success) debugBytes = encoded;
-
-          mat.dispose();
+          final (success, encoded) = cv.imencode(".jpg", currentMat);
+          if (success) {
+            debugBytes = encoded;
+          }
 
           message.replyPort.send(
             OpenCVResult(nv21ReadyBytes, debugBytes, outW, outH),
           );
         } catch (e) {
-          developer_log.log('Loi OpenCV: $e', name: 'WORKER_OPENCV');
+          developer_log.log('Lỗi OpenCV Worker: $e', name: 'WORKER_OPENCV');
           message.replyPort.send(null);
         } finally {
-          mat?.dispose();
+          if (tempMat != null) {
+            tempMat.dispose();
+          }
+          if (currentMat != null) {
+            currentMat.dispose();
+          }
         }
       }
     }

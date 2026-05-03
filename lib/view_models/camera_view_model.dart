@@ -3,21 +3,24 @@ import 'package:build_access/core/camera/vision_stream_coordinator.dart';
 import 'package:build_access/core/scan/pipeline/ocr_preprocessor.dart';
 import 'package:build_access/core/scan/scan_orchestrator.dart';
 import 'package:build_access/core/utils/navigator_service.dart';
-import 'package:build_access/enum/config.dart';
-import 'package:build_access/features/reading_result_feature/reading_result_features.dart';
+import 'package:build_access/enum/state.dart';
+import 'package:build_access/features/vision_asisstant_features/vision_asisstant_feature.dart';
 import 'package:build_access/models/scan/scan_result.dart';
 import 'dart:developer' as developer_log;
 import 'package:build_access/providers/camera_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
+import 'package:build_access/services/haptic_hardware_service.dart';
 import 'package:camera/camera.dart';
 
 class CameraViewModel extends BaseModel {
   final VisionStreamCoordinator _visionStream =
       getIt<VisionStreamCoordinator>();
-  final VoiceInteractionProvider voiceInteractionProvider = getIt<VoiceInteractionProvider>();
+  final VoiceInteractionProvider voiceInteractionProvider =
+      getIt<VoiceInteractionProvider>();
   final CameraProvider cameraProvider = getIt<CameraProvider>();
   final ScanOrchestrator _scanOrchestrator = getIt<ScanOrchestrator>();
+  final HapticHardwareService _hapticService = getIt<HapticHardwareService>();
 
   Future<void> initCamera() async {
     await runSafe(() async {
@@ -29,22 +32,38 @@ class CameraViewModel extends BaseModel {
         voiceInteractionProvider.speak('Khởi tạo camera thất bại');
         return;
       }
-      voiceInteractionProvider.speak('Khởi động thành công bắt đầu nhận diện!');
+
+      await scanProcess();
       return;
     }, 'CameraModel.init');
   }
 
-  void scanSuccess(ScanResult result) {
-    voiceInteractionProvider.stopSpeaking();
-    voiceInteractionProvider.speak("Đọc được thông tin ${result.textDetect}");
-    Map<String, dynamic> propResult = {
-      "rawText": result.textDetect,
-      "type": AiType.ocrCorrection,
-    };
-    getIt<NavigatorService>().pushNamedAndRemoveUntil(
-      ReadingResultFeatures.routeName,
-      arguments: propResult,
-    );
+  Future<void> scanSuccess(ScanResult result) async {
+    await _hapticService.executeSystemVibration();
+    await voiceInteractionProvider.stopSpeaking();
+    await voiceInteractionProvider.speak("Đọc được thông tin ${result.textDetect}");
+
+    if(result.textDetect!.trim().isNotEmpty) {
+      developer_log.log(
+        'Đọc được: ${result.textDetect}',
+        name: 'CameraViewModel.ScanProcess',
+      );
+
+      Map<String, dynamic> propResult = {
+        "rawText": result.textDetect,
+        "type": AIType.ocrCorrection,
+      };
+
+      getIt<NavigatorService>().pushNamedAndRemoveUntil(
+        VisionAsisstantFeature.routeName,
+        arguments: propResult,
+      );
+    } else {
+      developer_log.log(
+        'Đọc được rỗng thông tin',
+        name: 'CameraViewModel.ScanProcess',
+      );
+    }
   }
 
   Future<void> scanProcess() async {
@@ -55,8 +74,13 @@ class CameraViewModel extends BaseModel {
     await _visionStream.startVisionLoop((CameraImage image) async {
       try {
         ScanResult result = await _scanOrchestrator.process(image);
+
         if (result.status != ScanStatus.ok) {
-          voiceInteractionProvider.speak(result.command!);
+          if (result.command != null && result.command!.isNotEmpty) {
+            if (!voiceInteractionProvider.isSpeaking) {
+              await voiceInteractionProvider.speak(result.command!);
+            }
+          }
           return false;
         } else {
           scanSuccess(result);

@@ -1,23 +1,23 @@
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 
 class KeywordMatcher {
   final Map<IntentType, List<String>> keywords = {
-    IntentType.repeat: [
+    IntentType.REPEAT: [
       "doc lai",
       "noi lai",
       "lap lai"
     ],
-    IntentType.history: [
+    IntentType.HISTORY: [
       "lich su",
       "xem lai",
       "danh sach"
     ],
-    IntentType.settings: [
+    IntentType.SETTINGS: [
       "cai dat",
       "cau hinh",
       "chinh"
     ],
-    IntentType.cancel: [
+    IntentType.CANCEL: [
       "dung",
       "thoat",
       "huy",

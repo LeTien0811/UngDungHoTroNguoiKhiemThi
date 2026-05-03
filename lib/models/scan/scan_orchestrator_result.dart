@@ -1,4 +1,4 @@
-import 'package:build_access/enum/config.dart';
+import 'package:build_access/enum/state.dart';
 
 class ScanOrchestratorResult {
   final ScanStatus status;

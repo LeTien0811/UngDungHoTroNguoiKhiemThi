@@ -1,4 +1,7 @@
+import 'package:build_access/core/text_to_speech/get_best_voice.dart';
+import 'package:build_access/models/setting/app_setting_model.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'dart:developer' as developer_log;
 
 class TextToSpeechService {
   final FlutterTts _flutterTts = FlutterTts();
@@ -9,11 +12,33 @@ class TextToSpeechService {
 
   Function(bool)? onSpeakingStateChanged;
 
-  Future<void> init() async {
-    await _flutterTts.setLanguage("vi-VN");
-    await _flutterTts.setSpeechRate(0.5);
+  Future<void> init(AppSettingsModel appSetting) async {
+    final List<dynamic> voices = await _flutterTts.getVoices ?? [];
+    developer_log.log(voices.toString(), name: "TextToSpeechService.init");
+
+    final bestVoice = await GetBestVoice.getVoice(
+      voices: voices,
+      language: appSetting.ttsLanguage,
+      genderPreference: appSetting.ttsGenderPreference,
+    );
+
+    await _flutterTts.setLanguage(appSetting.ttsLanguage);
+
+    if (bestVoice != null) {
+      await _flutterTts.setVoice({
+        "name": bestVoice['name'],
+        "locale": bestVoice['locale'],
+      });
+    } else if (appSetting.ttsVoiceId.isNotEmpty) {
+      await _flutterTts.setVoice({
+        "name": appSetting.ttsVoiceId,
+        "locale": appSetting.ttsLanguage,
+      });
+    }
+
+    await _flutterTts.setSpeechRate(appSetting.ttsSpeechRate);
     await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setPitch(appSetting.ttsPitch);
     await _flutterTts.awaitSpeakCompletion(true);
 
     _flutterTts.setCompletionHandler(() {
@@ -30,6 +55,24 @@ class TextToSpeechService {
       _setSpeakingState(false);
       _processQueue();
     });
+  }
+
+  Future<void> applyHardwareSettings(AppSettingsModel settings) async {
+    try {
+      await _flutterTts.setSpeechRate(settings.ttsSpeechRate);
+
+      await _flutterTts.setPitch(settings.ttsPitch);
+
+      if (settings.ttsVoiceId.isNotEmpty) {
+        await _flutterTts.setVoice({
+          "name": settings.ttsVoiceId,
+          "locale": settings.ttsLanguage,
+        });
+      }
+
+    } catch (e) {
+      developer_log.log("Không thể cập nhật cấu hình loa: $e", name: "VoiceProvider");
+    }
   }
 
   void _setSpeakingState(bool state) {
