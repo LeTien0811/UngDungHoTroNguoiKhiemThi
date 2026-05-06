@@ -19,6 +19,7 @@ class _OnboardingFeatureState extends State<OnboardingFeature> {
         return Body(model: model,);
       },
       onModelReady: (model) {
+        model.initializer();
       },
       onModelDispose: (model) {
         model.dispose();

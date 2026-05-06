@@ -1,7 +1,7 @@
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/core/vision_asisstant/factory/vision_action_factory.dart';
 import 'package:build_access/enum/state.dart';
-import 'package:build_access/providers/local_ai_provider.dart';
+import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'dart:developer' as developer_log;
@@ -37,7 +37,7 @@ class VisionAssistantViewModel extends BaseModel {
       }
 
       await voiceInteractionProvider.playSuccessSound();
-      voiceInteractionProvider.speak(rawText);
+      await voiceInteractionProvider.speak(rawText);
     }, 'VisionAssistantViewModel.init');
   }
 }

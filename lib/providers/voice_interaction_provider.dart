@@ -4,6 +4,7 @@ import 'package:build_access/models/setting/app_setting_model.dart';
 import 'package:build_access/services/voice_interaction/audio_feedback_service.dart';
 import 'package:build_access/services/voice_interaction/speech_to_text_service.dart';
 import 'package:build_access/services/voice_interaction/text_to_speech_service.dart';
+import 'dart:developer' as developer_log;
 
 class VoiceInteractionProvider extends BaseModel {
   final TextToSpeechService _ttsService = getIt<TextToSpeechService>();
@@ -71,6 +72,24 @@ class VoiceInteractionProvider extends BaseModel {
 
   Future<void> playErrorSound() async {
     await _audioFeedbackService.playErrorSound();
+  }
+
+  // Trong class VoiceInteractionProvider
+
+  Future<void> speakAndThenListen(String text) async {
+    developer_log.log("TTS đang đọc: $text", name: "VoiceProvider");
+
+    // Tắt mic nếu đang chạy
+    stopListening();
+
+    // Đợi Flutter TTS đọc xong chữ cuối cùng
+    await speak(text);
+
+    // NGHỈ 0.5 GIÂY: Để hệ điều hành Android kịp giải phóng phần cứng Loa và cấp quyền Mic
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    developer_log.log("TTS đọc xong, Mic bắt đầu mở...", name: "VoiceProvider");
+    startListening();
   }
 
   @override

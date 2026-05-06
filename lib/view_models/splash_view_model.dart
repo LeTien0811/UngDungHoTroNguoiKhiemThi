@@ -1,7 +1,6 @@
+import 'package:build_access/core/AI/ai_orchestrator.dart';
 import 'package:build_access/core/VoiceCommand/SemanticRouter/intent_classifier_engine.dart';
 import 'package:build_access/core/base/base_model.dart';
-import 'package:build_access/core/local_ai/local_ai_engine.dart';
-import 'package:build_access/core/local_ai/model_downloader_service.dart';
 import 'package:build_access/core/setting/app_setting_engine.dart';
 import 'package:build_access/core/setups/permissions_setup.dart';
 import 'package:build_access/core/user_profile/user_profile_engine.dart';
@@ -13,24 +12,29 @@ import 'package:build_access/features/onboarding_features/onboarding_feature.dar
 import 'package:build_access/providers/app_setting_provider.dart';
 import 'package:build_access/providers/user_profile_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
-import 'package:build_access/services/camera_hardware_service.dart';
+import 'package:build_access/services/scan/camera_hardware_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer_log;
 
 class SplashViewModel extends BaseModel {
   final NavigatorService _navigatorService = getIt<NavigatorService>();
+
   final VoiceInteractionProvider _voiceInteractionProvider =
       getIt<VoiceInteractionProvider>();
-  final LocalAIEngine _localAIEngine = getIt<LocalAIEngine>();
+
   final CameraHardwareService _cameraHardwareService =
       getIt<CameraHardwareService>();
+
   final IntentClassifierEngine _classifierEngine =
       getIt<IntentClassifierEngine>();
+
   final AppSettingEngine _appSettingEngine = getIt<AppSettingEngine>();
   final AppSettingProvider _appSettingProvider = getIt<AppSettingProvider>();
 
   final UserProfileProvider _profileProvider = getIt<UserProfileProvider>();
   final UserProfileEngine _profileEngine = getIt<UserProfileEngine>();
+
+  final AIOrchestrator _aiOrchestrator = getIt<AIOrchestrator>();
 
   bool hasMicPermission = false;
   bool hasCameraPermission = false;
@@ -39,7 +43,7 @@ class SplashViewModel extends BaseModel {
     await _appSettingEngine.initializeEngine();
     if (_appSettingProvider.status != SettingStatus.idle) {
       developer_log.log(
-        "khoi tao app setting khogn thanh cong",
+        "khoi tao app setting khong thanh cong",
         name: "SplashViewModel.initializerApp",
       );
     }
@@ -70,22 +74,8 @@ class SplashViewModel extends BaseModel {
         "Đang kiểm tra dữ liệu, vui lòng đợi trong giây lát.",
       );
 
-      developer_log.log(
-        "tải model Trợ lý",
-        name: "SplashViewModel.initializerApp",
-      );
-      String getPathLocationModel = await getIt<ModelDownloaderService>().downloadModel(onProgress: _voiceInteractionProvider.speak);
-
-      developer_log.log(
-        "nạp model phân tích câu lệnh",
-        name: "SplashViewModel.initializerApp",
-      );
-
       await Future.wait([
         _profileEngine.initializer(),
-        _cameraHardwareService.init(),
-        _localAIEngine.initialize(getPathLocationModel),
-        _classifierEngine.initializer(),
       ]);
 
       if (WidgetsBinding.instance.lifecycleState ==
@@ -95,9 +85,7 @@ class SplashViewModel extends BaseModel {
 
       developer_log.log("Hoàn thành", name: "SplashViewModel.initializerApp");
 
-      _voiceInteractionProvider.speak(
-        "Hệ thống đã sẵn sàng. Vuốt từ trên xuống để quét nhận diện mà không cần mạng. Vuốt từ dưới lên để quét thông minh.",
-      );
+      _voiceInteractionProvider.playSuccessSound();
 
       if (_profileProvider.userState == UserProfileState.uninitialized) {
         _navigatorService.pushNamedAndRemoveUntil(OnboardingFeature.routerName);

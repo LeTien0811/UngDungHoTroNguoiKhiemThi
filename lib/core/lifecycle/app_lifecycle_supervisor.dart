@@ -1,8 +1,8 @@
 import 'package:build_access/core/VoiceCommand/SemanticRouter/intent_classifier_engine.dart';
-import 'package:build_access/core/local_ai/local_ai_engine.dart';
+import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
-import 'package:build_access/services/camera_hardware_service.dart';
+import 'package:build_access/services/scan/camera_hardware_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer_log;
 
@@ -12,7 +12,8 @@ class AppLifecycleSupervisor extends WidgetsBindingObserver {
   final VoiceInteractionProvider _voiceInteractionProvider =
       getIt<VoiceInteractionProvider>();
   final LocalAIEngine _localAIEngine = getIt<LocalAIEngine>();
-  final IntentClassifierEngine _classifierEngine = getIt<IntentClassifierEngine>();
+  final IntentClassifierEngine _classifierEngine =
+      getIt<IntentClassifierEngine>();
 
   void startSupervising() {
     WidgetsBinding.instance.addObserver(this);
@@ -58,13 +59,23 @@ class AppLifecycleSupervisor extends WidgetsBindingObserver {
     }
   }
 
-  void _handleAppKilled() {
-    developer_log.log("App bị tắt: Hủy toàn bộ tài nguyên", name: "Lifecycle");
-
-    _voiceInteractionProvider.dispose();
-    _cameraHardwareService.dispose();
-    _localAIEngine.dispose();
-    _classifierEngine.shutdownEngine();
+  Future<void> _handleAppKilled() async {
+    developer_log.log(
+      'KÍCH HOẠT QUY TRÌNH DỌN DẸP TỔNG...',
+      name: 'LifecycleSupervisor',
+    );
+    try {
+      await getIt.reset();
+      developer_log.log(
+        'Dọn dẹp hệ thống thành công.',
+        name: 'LifecycleSupervisor',
+      );
+    } catch (e) {
+      developer_log.log(
+        'Lỗi trong quá trình dọn dẹp: $e',
+        name: 'LifecycleSupervisor',
+      );
+    }
   }
 
   @override

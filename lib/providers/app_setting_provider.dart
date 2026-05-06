@@ -12,8 +12,9 @@ class AppSettingProvider extends BaseModel {
       setProcess();
       appSetting = propSettingApp;
       status = SettingStatus.idle;
-      notifyListeners();
       developer_log.log("nạp thành công app Setting", name: "AppSettingProvider.loadedAppSetting");
+      setReady();
+      notifyListeners();
     } catch(e) {
       developer_log.log("Lỗi nạp: $e", name: "AppSettingProvider.loadedAppSetting");
       setError();

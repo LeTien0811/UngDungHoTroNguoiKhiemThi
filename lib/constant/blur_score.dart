@@ -3,17 +3,19 @@ import 'package:camera/camera.dart';
 import 'dart:developer' as developer_log;
 
 double calculateBrightness(Uint8List bytes) {
+  if (bytes.isEmpty) return 0.0;
   int sum = 0;
-  for (int i = 0; i < bytes.length; i += 10) {
+  int step = 20; // Tăng bước nhảy để tối ưu CPU
+  for (int i = 0; i < bytes.length; i += step) {
     sum += bytes[i];
   }
-  return sum / (bytes.length / 10);
+  return sum / (bytes.length / step);
 }
 
 double getDynamicThreshold(double brightness) {
-  if (brightness < 50) return 150.0;
-  if (brightness < 100) return 300.0;
-  return 500.0;
+  if (brightness < 40) return 80.0;  // Ánh sáng yếu, hạ thấp tiêu chuẩn
+  if (brightness < 80) return 150.0;
+  return 250.0; // Ngưỡng thực tế cho ảnh nét sau khi bỏ Smoothing
 }
 
 double calculateBlurScore(CameraImage image) {

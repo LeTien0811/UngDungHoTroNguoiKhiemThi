@@ -4,8 +4,8 @@ import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/models/setting/app_setting_model.dart';
 import 'package:build_access/providers/app_setting_provider.dart';
-import 'package:build_access/services/flash_light_hardware_service.dart';
-import 'package:build_access/services/haptic_hardware_service.dart';
+import 'package:build_access/services/scan/flash_light_hardware_service.dart';
+import 'package:build_access/services/scan/haptic_hardware_service.dart';
 import 'package:build_access/services/secure_storage_service.dart';
 import 'dart:developer' as developer_log;
 
@@ -28,6 +28,9 @@ class AppSettingEngine {
           rawJson,
         );
         _settingProvider.loadedAppSetting(loadedSettings);
+      } else {
+        developer_log.log("Chưa có setting nào được lưu", name: "AppSettingsEngine");
+        _settingProvider.setReady();
       }
     } catch (e) {
       developer_log.log("Lỗi nạp cấu hình: $e", name: "AppSettingsEngine");

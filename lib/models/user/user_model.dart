@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:build_access/models/user/medical_record.dart';
 
 class UserModel {
@@ -22,14 +21,14 @@ class UserModel {
     String? phone,
     String? address,
     bool? isSynced,
-    MedicalRecord? medicalRecord,
+    MedicalRecord? Function()? medicalRecord,
   }) {
     return UserModel(
       name: name ?? this.name,
       phone: phone ?? this.phone,
       address: address ?? this.address,
       isSynced: isSynced ?? this.isSynced,
-      medicalRecord: medicalRecord ?? this.medicalRecord,
+      medicalRecord: medicalRecord != null ? medicalRecord() : this.medicalRecord,
     );
   }
 
@@ -49,19 +48,25 @@ class UserModel {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    String parseData(dynamic value) {
+      if (value == null || value == "N/A" || value.toString().trim().isEmpty) {
+        return "Không rõ";
+      }
+      return value.toString();
+    }
+
     return UserModel(
-      name: map['name'] ?? "Không rõ",
-      phone: map['phone'] ?? "Không rõ",
-      address: map['address'] ?? "Không rõ",
-      isSynced: map['isSynced'] ?? false,
+      name: parseData(map['name']),
+      phone: parseData(map['phone']),
+      address: parseData(map['address']),
+      isSynced: map['isSynced'] as bool? ?? false,
       medicalRecord: map['medicalRecord'] != null
-          ? MedicalRecord.fromMap(map['medicalRecord'])
+          ? MedicalRecord.fromMap(map['medicalRecord'] as Map<String, dynamic>)
           : null,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory UserModel.fromJson(String source) =>
-      UserModel.fromMap(json.decode(source));
+  factory UserModel.fromJson(String source) => UserModel.fromMap(json.decode(source));
 }

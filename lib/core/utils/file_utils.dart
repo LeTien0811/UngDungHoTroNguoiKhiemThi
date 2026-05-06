@@ -7,6 +7,7 @@ class ImageDebugUtils {
   static Future<void> saveDebugImage(
     Uint8List bytes, {
     int rotationDegree = 0,
+    String filePrefix = 'ocr_check',
   }) async {
     try {
       // Ép đường dẫn cứng ra thư mục Pictures công khai của Android
@@ -26,7 +27,7 @@ class ImageDebugUtils {
           .join('_');
 
       // Đặt tên file là ocr_check.jpg và ghi đè liên tục
-      final String filePath = '$folderPath/ocr_check_$safeTimeName.jpg';
+      final String filePath = '$folderPath/${filePrefix}_$safeTimeName.jpg';
       final File file = File(filePath);
 
       Uint8List outputBytes = bytes;

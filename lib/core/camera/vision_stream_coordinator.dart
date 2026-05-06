@@ -1,4 +1,4 @@
-import 'package:build_access/services/camera_hardware_service.dart';
+import 'package:build_access/services/scan/camera_hardware_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/providers/camera_provider.dart';
@@ -83,5 +83,10 @@ class VisionStreamCoordinator {
       );
       return;
     }
+  }
+
+  void dispose() {
+    cameraProvider.setDisposed();
+    cameraHardwareManager.dispose();
   }
 }

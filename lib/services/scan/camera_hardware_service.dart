@@ -5,9 +5,11 @@ import 'dart:developer' as developer_log;
 class CameraHardwareService {
   CameraController? controller;
   CameraDescription? camera;
+  bool _isDisposing = false;
 
   bool get isCameraStream => controller?.value.isStreamingImages ?? false;
   bool get isInitialized => controller?.value.isInitialized ?? false;
+  bool get isDisposing => _isDisposing;
 
   Future<CameraDescription?> getBackCamera() async {
     try {
@@ -32,6 +34,8 @@ class CameraHardwareService {
 
   Future<bool> init() async {
     try {
+      if (_isDisposing) return false;
+
       if (controller != null) {
         if (controller!.value.isInitialized) return true;
 
@@ -64,8 +68,11 @@ class CameraHardwareService {
 
   Future<bool> startFocus() async {
     try {
-      if (!isInitialized) return false;
-      await controller?.setFocusMode(FocusMode.auto);
+      final CameraController? activeController = controller;
+      if (_isDisposing || activeController == null || !activeController.value.isInitialized) {
+        return false;
+      }
+      await activeController.setFocusMode(FocusMode.auto);
       return true;
     } catch (e) {
       developer_log.log(
@@ -80,15 +87,19 @@ class CameraHardwareService {
     Future<T> Function(CameraImage image) onProcessFrame,
   ) async {
     try {
-      if (controller == null || !isInitialized) {
+      final CameraController? activeController = controller;
+      if (_isDisposing || activeController == null || !activeController.value.isInitialized) {
         return;
       }
 
-      if (isCameraStream) {
+      if (activeController.value.isStreamingImages) {
         return;
       }
 
-      await controller!.startImageStream((CameraImage imageOnFrame) async {
+      await activeController.startImageStream((CameraImage imageOnFrame) async {
+        if (_isDisposing || controller != activeController) {
+          return;
+        }
         await onProcessFrame(imageOnFrame);
       });
     } catch (e) {
@@ -102,8 +113,9 @@ class CameraHardwareService {
 
   Future<bool> stopStream() async {
     try {
-      if (controller != null && controller!.value.isStreamingImages) {
-        await controller!.stopImageStream();
+      final CameraController? activeController = controller;
+      if (activeController != null && activeController.value.isStreamingImages) {
+        await activeController.stopImageStream();
         developer_log.log(
           'Dừng camera',
           name: 'CameraHardwareService.stopStream',
@@ -121,14 +133,21 @@ class CameraHardwareService {
   }
 
   Future<bool> dispose() async {
+    if (_isDisposing) return false;
     try {
+      _isDisposing = true;
       developer_log.log('Hủy camera', name: 'CameraHardwareService.stopStream');
-      if (controller != null) {
-        if (controller!.value.isStreamingImages) {
-          await controller!.stopImageStream();
+      final CameraController? activeController = controller;
+      controller = null;
+      camera = null;
+
+      if (activeController != null) {
+        if (activeController.value.isStreamingImages) {
+          await activeController.stopImageStream();
         }
-        await controller!.dispose();
-        controller = null;
+        await activeController.dispose().then((_) {
+          developer_log.log('Hủy camera xong', name: 'CameraHardwareService.stopStream');
+        });
         return true;
       }
       return false;
@@ -138,6 +157,8 @@ class CameraHardwareService {
         name: 'CameraHardwareService.dispose',
       );
       return false;
+    } finally {
+      _isDisposing = false;
     }
   }
 }

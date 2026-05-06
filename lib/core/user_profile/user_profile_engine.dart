@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:build_access/core/local_ai/local_ai_engine.dart';
+import 'package:build_access/core/AI/ai_orchestrator.dart';
+import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/core/utils/navigator_service.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/models/AI/ai_form_factory.dart';
 import 'package:build_access/models/user/user_model.dart';
-import 'package:build_access/providers/local_ai_provider.dart';
+import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'package:build_access/providers/user_profile_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/services/secure_storage_service.dart';
@@ -16,7 +18,7 @@ import 'dart:developer' as developer_log;
 class UserProfileEngine {
   final SecureStorageService _secureStorage = getIt<SecureStorageService>();
   final UserProfileProvider _provider = getIt<UserProfileProvider>();
-  final LocalAIEngine _localAIEngine = getIt<LocalAIEngine>();
+  final AIOrchestrator _aiEngine = getIt<AIOrchestrator>();
   final LocalAiProvider _aiProvider = getIt<LocalAiProvider>();
   final VoiceInteractionProvider _voice = getIt<VoiceInteractionProvider>();
 
@@ -31,74 +33,115 @@ class UserProfileEngine {
         _provider.setUninitialized();
         return;
       }
+
       UserModel newUser = UserModel.fromJson(storage);
-      if(newUser.toString().trim().isNotEmpty) {
+      if (newUser.toString().trim().isNotEmpty) {
         _provider.setUserProfile(newUser);
-        developer_log.log("Đã có thông tin người dùng ");
-        getIt<NavigatorService>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
+        getIt<NavigatorService>().pushNamedAndRemoveUntil(
+          HomeFeatures.routerName,
+        );
         return;
       }
-
-      await _voice.speak(
-        "Chưa có thông tin người dùng bạn hãy cung cấp 1 số thông tin để ứng dụng có thể hoạt động tốt hơn sau khi tôi nói xong hãy ấn giữ giữa màn hình và đọc to Họ Tên, Số Điện Thoại và Địa chỉ nhé.",
-      );
-      return;
     } catch (e) {
       _provider.setError();
-      developer_log.log(
-        "lỗi xảy ra khi init user: $e",
-        name: "UserProfileEngine.initializer",
-      );
+      developer_log.log("Lỗi khởi tạo user: $e", name: "UserProfileEngine");
     }
   }
 
-  Future<bool> getUserProfile() async {
+  Future<void> speakInstruction() async {
+    await _voice.speak(
+      "Nhấn giữ vòng tròn trên màn hình để nói, thả tay ra khi bạn đã nói xong.",
+    );
+  }
+
+  void startWalkieTalkie() {
+    developer_log.log("BỘ ĐÀM: Bắt đầu thu...", name: "UserProfileEngine");
+    _voice.stopSpeaking();
+    _voice.startListening();
+    _inputCompleter = Completer<String>();
+  }
+
+  Future<bool> stopWalkieTalkieAndProcessAI() async {
     try {
-      if (_aiProvider.status != AIStatus.ready) {
-        await _voice.speak(
-          "Hệ thống chưa sẵn sàng, vui lòng khởi động lại ứng dụng!",
-        );
+      developer_log.log(
+        "BỘ ĐÀM: Ngắt thu, bắt đầu xử lý AI...",
+        name: "UserProfileEngine",
+      );
 
-        developer_log.log(
-          "Hệ thống cưa sẵn sàng khởi động lại!",
-          name: "UserProfileEngine.getUserProfile",
-        );
+      _voice.stopListening();
+      String text = _voice.recognizedText ?? "";
 
+      if (_inputCompleter != null && !_inputCompleter!.isCompleted) {
+        _inputCompleter!.complete(text);
+      }
+
+      // 2. LẤY DỮ LIỆU TỪ COMPLETER (Của luồng startWalkieTalkie trước đó)
+      String userVoice = await _inputCompleter!.future;
+
+      developer_log.log(
+        "Đamg đợi input complete",
+        name: "UserProfileEngine.getUserProfile",
+      );
+
+      if (userVoice.trim().isEmpty) {
+        await _voice.speak("Tôi chưa nghe rõ, vui lòng nhấn giữ và thử lại.");
+        developer_log.log("User Voice Rỗng", name: "UserProfileEngine");
         return false;
       }
 
-      await _voice.speak(
-        "Đến nơi yên tĩnh đọc to rõ thông tin Họ Tên, Số Điện Thoại, và địa chỉ.",
+      developer_log.log(
+        "Tiến hành phân tích AI $userVoice",
+        name: "UserProfileEngine.getUserProfile",
       );
 
-      if(!_voice.isSpeaking) {
-        _voice.startListening();
-        _inputCompleter = Completer<String>();
+      await _voice.speak("Đang phân tích dữ liệu, vui lòng đợi...");
 
-        developer_log.log(
-          "Chờ người dùng nói!",
-          name: "UserProfileEngine.getUserProfile",
-        );
+      final Stream<String> aiStream = _aiEngine.executeAiTask(
+        "BUILD_EXTRACT_BASIC_PROFILE",
+        userVoice,
+        [],
+      );
 
-        String userVoice = await _inputCompleter!.future;
-        String fullPromt = AiPromptFactory.buildExtractBasicProfilePrompt(
-          voiceText: userVoice,
-        );
-
-        String aiResult = await _localAIEngine.executeTask(fullPromt);
-        String cleanJsonString = _extractJsonBlock(aiResult);
-
-        developer_log.log(
-          "Kết quả trả về: $cleanJsonString",
-          name: "UserProfileEngine.getUserProfile",
-        );
-
-        UserModel userFinal = UserModel.fromJson(aiResult);
-        await _secureStorage.saveData(_key, aiResult);
-        _provider.setUserProfile(userFinal);
-
-        _voice.speak("Thiết lập thành công. Xin chào ${userFinal.name}.");
+      StringBuffer cleanContentBuffer = StringBuffer();
+      await for (final chunk in aiStream) {
+        try {
+          // 1. Giải mã từng mảnh JSON nhỏ từ Server (mảnh có chứa trường "text")
+          final Map<String, dynamic> chunkMap = jsonDecode(chunk);
+          if (chunkMap.containsKey('text')) {
+            // 2. Chỉ lấy phần ruột bên trong trường text và ghép lại
+            cleanContentBuffer.write(chunkMap['text']);
+          }
+        } catch (e) {
+          // Nếu mảnh đó không phải JSON (ví dụ text thuần), cứ ghi đè vào buffer
+          cleanContentBuffer.write(chunk);
+        }
       }
+      String fullRawResponse = cleanContentBuffer.toString();
+      developer_log.log(
+        "Tổng nội dung đã ghép: $fullRawResponse",
+        name: "UserProfileEngine",
+      );
+      String cleanJsonString = _extractJsonBlock(fullRawResponse);
+      developer_log.log(
+        "Kết quả JSON: $cleanJsonString",
+        name: "UserProfileEngine",
+      );
+
+      developer_log.log(
+        "Kết quả trả về: $cleanJsonString",
+        name: "UserProfileEngine.getUserProfile",
+      );
+
+      UserModel userFinal = UserModel.fromJson(cleanJsonString);
+      await _secureStorage.saveData(_key, cleanJsonString);
+      _provider.setUserProfile(userFinal);
+
+      _voice.speak("Thiết lập thành công. Xin chào ${userFinal.name}.");
+
+      getIt<NavigatorService>().pushNamedAndRemoveUntil(
+        HomeFeatures.routerName,
+      );
+
       return true;
     } catch (e) {
       developer_log.log(
@@ -106,25 +149,6 @@ class UserProfileEngine {
         name: "UserProfileEngine.notifyUserInputreFinished",
       );
       return false;
-    }
-  }
-
-  void notifyUserInputFinished() {
-    try {
-      _voice.stopListening();
-      String text = _voice.recognizedText;
-      if (_inputCompleter != null && !_inputCompleter!.isCompleted) {
-        _inputCompleter!.complete(text);
-        _inputCompleter = null;
-      }
-
-      return;
-    } catch (e) {
-      developer_log.log(
-        "Có lỗi xảy ra khi yêu cầu thông báo hoàn thành: $e",
-        name: "UserProfileEngine.notifyUserInputreFinished",
-      );
-      return;
     }
   }
 

@@ -10,7 +10,7 @@ import 'dart:developer' as developer_log;
 import 'package:build_access/providers/camera_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
-import 'package:build_access/services/haptic_hardware_service.dart';
+import 'package:build_access/services/scan/haptic_hardware_service.dart';
 import 'package:camera/camera.dart';
 
 class CameraViewModel extends BaseModel {
@@ -102,6 +102,7 @@ class CameraViewModel extends BaseModel {
       if (_visionStream.cameraHardwareManager.isCameraStream) {
         _visionStream.cameraHardwareManager.stopStream();
       }
+      _visionStream.dispose();
     } catch (e) {
       developer_log.log(
         'Lỗi khi hủy view_models: $e',

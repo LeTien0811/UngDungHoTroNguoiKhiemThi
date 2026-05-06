@@ -50,12 +50,9 @@ class OcrPreprocessor extends BaseService {
               payload.bytes
           );
 
-          tempMat = currentMat.colRange(0, payload.w).clone();
-          currentMat.dispose();
-          currentMat = tempMat;
-          tempMat = null;
-
           if (payload.cx != null && payload.cy != null && payload.cw != null && payload.ch != null) {
+            // AI-added: Crop chỉ chạy đúng một lần bằng tọa độ chuẩn hóa để
+            // loại bỏ lỗi cắt lệch khi vùng crop bị áp lại trên ảnh đã crop.
             tempMat = OpenCVVisionAlgorithm.safeCrop(
                 currentMat, payload.cx!, payload.cy!, payload.cw!, payload.ch!, 0.05
             );
@@ -103,7 +100,7 @@ class OcrPreprocessor extends BaseService {
     int w,
     int h, {
     int? stride,
-    Map<String, int>? crop,
+    Map<String, double>? crop,
   }) async {
     if (!isInitialized) return Future.value(Uint8List(0));
 

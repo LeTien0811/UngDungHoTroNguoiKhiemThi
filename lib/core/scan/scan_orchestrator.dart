@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:build_access/core/scan/pipeline/vision_debug_painter.dart';
-import 'package:build_access/services/camera_hardware_service.dart';
+import 'package:build_access/services/scan/camera_hardware_service.dart';
 import 'package:build_access/core/image/coordinate_mapper.dart';
 import 'package:build_access/core/image/device_orientation.dart';
 import 'package:build_access/core/image/frame_quality_evaluator.dart';
@@ -37,6 +37,31 @@ class ScanOrchestrator {
 
   final FrameQualityEvaluator _frameQualityEvaluator = getIt<FrameQualityEvaluator>();
 
+  // AI-added: Siết vùng OCR về nhãn chính ở giữa vật thể để giảm đọc rác từ
+  // mép gói, nền phía sau và phần gập hai bên bao bì.
+  Rect _focusPrimaryLabelRegion(Rect objectBox, Size imageSize) {
+    final bool isPortraitObject = objectBox.height >= objectBox.width;
+    final double horizontalInsetRatio = isPortraitObject ? 0.18 : 0.14;
+    final double verticalInsetRatio = isPortraitObject ? 0.08 : 0.12;
+
+    final double insetX = objectBox.width * horizontalInsetRatio;
+    final double insetY = objectBox.height * verticalInsetRatio;
+
+    final Rect focused = Rect.fromLTRB(
+      objectBox.left + insetX,
+      objectBox.top + insetY,
+      objectBox.right - insetX,
+      objectBox.bottom - insetY,
+    );
+
+    return Rect.fromLTRB(
+      focused.left.clamp(0.0, imageSize.width),
+      focused.top.clamp(0.0, imageSize.height),
+      focused.right.clamp(0.0, imageSize.width),
+      focused.bottom.clamp(0.0, imageSize.height),
+    );
+  }
+
   Future<ScanResult> _handleErrorResult(
     ScanStatus status,
     String command,
@@ -53,11 +78,38 @@ class ScanOrchestrator {
     return ScanResult(status, command: "");
   }
 
-  void _exportDebugImageInBackground(Uint8List debugBytes, RecognizedText text, int rotationDegree) {
+  void _exportDebugImageInBackground({
+    required Uint8List sceneLumaBytes,
+    required int sceneWidth,
+    required int sceneHeight,
+    required int sceneStride,
+    required Rect objectBox,
+    required Rect cropBox,
+    required Uint8List ocrDebugBytes,
+    required RecognizedText text,
+    required int rotationDegree,
+  }) {
     Future.microtask(() async {
       try {
+        final Uint8List? sceneDebugBytes = VisionDebugPainter.drawSceneBoundingBoxes(
+          lumaBytes: sceneLumaBytes,
+          width: sceneWidth,
+          height: sceneHeight,
+          stride: sceneStride,
+          rotationDegree: rotationDegree,
+          objectBox: objectBox,
+          cropBox: cropBox,
+        );
+
+        if (sceneDebugBytes != null) {
+          ImageDebugUtils.saveDebugImage(
+            sceneDebugBytes,
+            filePrefix: 'scene_debug',
+          );
+        }
+
         final Uint8List? boxedImageBytes = await VisionDebugPainter.drawTextBoundingBoxes(
-          debugBytes,
+          ocrDebugBytes,
           text,
         );
 
@@ -65,6 +117,7 @@ class ScanOrchestrator {
           ImageDebugUtils.saveDebugImage(
             boxedImageBytes,
             rotationDegree: rotationDegree,
+            filePrefix: 'ocr_crop',
           );
         }
       } catch (e) {
@@ -101,12 +154,29 @@ class ScanOrchestrator {
         );
       }
 
+      final int objectRotationDegree = resolveRotationDegree(
+        _cameraHardwareManager,
+      );
+      final bool isQuarterTurn =
+          objectRotationDegree == 90 || objectRotationDegree == 270;
+      final Size mlKitVisibleSize = isQuarterTurn
+          ? Size(
+              imageFromFrame.height.toDouble(),
+              imageFromFrame.width.toDouble(),
+            )
+          : Size(
+            imageFromFrame.width.toDouble(),
+            imageFromFrame.height.toDouble(),
+            );
+
+      final Rect focusedLabelRegion = _focusPrimaryLabelRegion(
+        bestObject,
+        mlKitVisibleSize,
+      );
+
       final mappedCrop = CoordinateMapper.mapRotatedMlKitToRawSensor(
-        mlKitRect: bestObject,
-        imageSize: Size(
-          imageFromFrame.width.toDouble(),
-          imageFromFrame.height.toDouble(),
-        ),
+        mlKitRect: focusedLabelRegion,
+        mlKitImageSize: mlKitVisibleSize,
         sensorOrientation: _cameraHardwareManager.camera!.sensorOrientation,
       );
 
@@ -137,7 +207,7 @@ class ScanOrchestrator {
         );
       }
 
-      final int rotationDegree = resolveRotationDegree(_cameraHardwareManager);
+      final int rotationDegree = objectRotationDegree;
 
       final InputImage ocrInputImage = InputImage.fromBytes(
         bytes: optimizedBytes,
@@ -173,9 +243,18 @@ class ScanOrchestrator {
       _scanQualityManager.isThresholdReached(ScanStatus.ok);
 
       if (kDebugMode && debugBytes.isNotEmpty) {
-        _exportDebugImageInBackground(debugBytes, recognizedText, rotationDegree);
+        _exportDebugImageInBackground(
+          sceneLumaBytes: imageFromFrame.planes[0].bytes,
+          sceneWidth: imageFromFrame.width,
+          sceneHeight: imageFromFrame.height,
+          sceneStride: imageFromFrame.planes[0].bytesPerRow,
+          objectBox: bestObject,
+          cropBox: focusedLabelRegion,
+          ocrDebugBytes: debugBytes,
+          text: recognizedText,
+          rotationDegree: rotationDegree,
+        );
       }
-
 
       return spatialResult;
     } catch (e) {

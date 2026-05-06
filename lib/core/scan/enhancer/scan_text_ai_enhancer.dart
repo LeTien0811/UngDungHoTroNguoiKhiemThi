@@ -1,7 +1,7 @@
-import 'package:build_access/core/local_ai/local_ai_engine.dart';
+import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/models/AI/ai_form_factory.dart';
-import 'package:build_access/providers/local_ai_provider.dart';
+import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'dart:developer' as developer_log;
 
 class ScanTextAiEnhancer {
@@ -27,13 +27,10 @@ class ScanTextAiEnhancer {
         name: "ScanTextAiEnhancer.enhance",
       );
       _aiProvider.setProcessing();
-      String prompt = AiPromptFactory.buildOcrCorrectionPrompt(text);
+      String prompt = AiPromptFactory.generateLocalPrompt("OCR_SCAN", text, "");
       String result = await _localAiEngine.executeTask(prompt);
       _aiProvider.setReady(true);
-      developer_log.log(
-        "kết quả$result",
-        name: "ScanTextAiEnhancer.enhance",
-      );
+      developer_log.log("kết quả$result", name: "ScanTextAiEnhancer.enhance");
       return result.trim().isNotEmpty ? result : text;
     } catch (e) {
       developer_log.log(

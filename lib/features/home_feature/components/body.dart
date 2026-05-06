@@ -2,6 +2,7 @@ import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/core/utils/navigator_service.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
 import 'package:build_access/features/home_feature/components/derector_text.dart';
+import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:build_access/constant/color.dart';
@@ -39,11 +40,13 @@ class _BodyState extends State<Body> {
               child: GestureDetector(
                 onLongPress: () {
                   HapticFeedback.mediumImpact();
+                  getIt<VoiceInteractionProvider>().stopSpeaking();
                   SnackbarUtil.show(context, message:"🔊 Hãy đặt câu hỏi", bgColor: MyColors.textWhite);
                 },
                 onVerticalDragEnd: (details) {
                   if (details.primaryVelocity! < -300) {
                     HapticFeedback.lightImpact();
+                    getIt<VoiceInteractionProvider>().stopSpeaking();
                     SnackbarUtil.show(context,message:  "Chuyển sang: Đọc Thông Tin", bgColor:  MyColors.actionCyan);
                     getIt<NavigatorService>().navigateTo(CameraFeatures.routerName);
                   }

@@ -5,19 +5,32 @@ import 'package:opencv_dart/opencv_dart.dart' as cv;
 class OpenCVVisionAlgorithm {
   static const int targetLongEdge = 1280;
 
-  static cv.Mat safeCrop(cv.Mat originalMat, int cx, int cy, int cw, int ch, double paddingRatio) {
+  // AI-added: Crop chỉ thực hiện một lần từ tọa độ chuẩn hóa 0..1.
+  // Làm vậy tránh lỗi lệch hệ trục và tránh bị "double-crop" làm mất nửa vật thể.
+  static cv.Mat safeCrop(
+    cv.Mat originalMat,
+    double cx,
+    double cy,
+    double cw,
+    double ch,
+    double paddingRatio,
+  ) {
     try {
       final int imgWidth = originalMat.cols;
       final int imgHeight = originalMat.rows;
+      final int rawX = (cx.clamp(0.0, 1.0) * imgWidth).round();
+      final int rawY = (cy.clamp(0.0, 1.0) * imgHeight).round();
+      final int rawW = (cw.clamp(0.0, 1.0) * imgWidth).round();
+      final int rawH = (ch.clamp(0.0, 1.0) * imgHeight).round();
 
-      final int padX = (cw * paddingRatio).round();
-      final int padY = (ch * paddingRatio).round();
+      final int padX = (rawW * paddingRatio).round();
+      final int padY = (rawH * paddingRatio).round();
 
-      final int safeX = (cx - padX).clamp(0, imgWidth - 1);
-      final int safeY = (cy - padY).clamp(0, imgHeight - 1);
+      final int safeX = (rawX - padX).clamp(0, imgWidth - 1);
+      final int safeY = (rawY - padY).clamp(0, imgHeight - 1);
 
-      final int targetMaxW = cw + (padX * 2);
-      final int targetMaxH = ch + (padY * 2);
+      final int targetMaxW = rawW + (padX * 2);
+      final int targetMaxH = rawH + (padY * 2);
 
       final int safeW = targetMaxW.clamp(1, imgWidth - safeX);
       final int safeH = targetMaxH.clamp(1, imgHeight - safeY);
@@ -75,9 +88,9 @@ class OpenCVVisionAlgorithm {
       working.dispose();
       working = sharpened;
 
-      //final cv.Mat deskewed = _deskewDocumentRegion(working);
-      //working.dispose();
-      return working;
+      final cv.Mat deskewed = deskewDocumentRegion(working);
+      working.dispose();
+      return deskewed;
     } catch (e) {
       developer_log.log('Xử lý OCR thất bại: $e', name: 'WORKER_OPENCV');
       working.dispose();

@@ -6,10 +6,10 @@ class OpenCVPayload {
   final int w;
   final int h;
   final int stride;
-  final int? cx;
-  final int? cy;
-  final int? cw;
-  final int? ch;
+  final double? cx;
+  final double? cy;
+  final double? cw;
+  final double? ch;
 
   OpenCVPayload(this.bytes, this.w, this.h, this.stride, {this.cx, this.cy, this.cw, this.ch});
 }

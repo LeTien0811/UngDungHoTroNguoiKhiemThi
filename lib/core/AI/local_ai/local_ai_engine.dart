@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
-import 'package:build_access/providers/local_ai_provider.dart';
-import 'package:build_access/services/local_ai_service.dart';
+import 'package:build_access/providers/AI/local_ai_provider.dart';
+import 'package:build_access/services/AI_service/local_ai_service.dart';
 import 'dart:developer' as developer_log;
 
 class LocalAIEngine {
