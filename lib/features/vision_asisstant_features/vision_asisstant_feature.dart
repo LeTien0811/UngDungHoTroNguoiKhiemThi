@@ -1,11 +1,13 @@
 import 'package:build_access/core/base/base_view.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/features/vision_asisstant_features/components/body.dart';
+import 'package:build_access/models/scan/scan_result.dart';
 import 'package:build_access/view_models/vision_assistant_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class VisionAsisstantFeature extends StatefulWidget {
-  static const String routeName = '/vision_asisstant_feature';
+  static const String routeName = '/vision_assistant';
   const VisionAsisstantFeature({super.key});
 
   @override
@@ -14,26 +16,21 @@ class VisionAsisstantFeature extends StatefulWidget {
 
 class _VisionAsisstantFeatureState extends State<VisionAsisstantFeature>
     with SingleTickerProviderStateMixin {
-
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-    final String rawText = args['rawText'] ?? "";
-    final AIType type = args['type'] ?? AIType.error;
+    final ScanResult? scanResultProps = Get.arguments['scanResult'];
+    final AIType type = Get.arguments['type'] ?? AIType.values;
 
     return BaseView<VisionAssistantViewModel>(
       builder: (context, model, child) {
-        if (model.state == ViewState.busy ||
-            rawText.isEmpty ||
-            type == AIType.error) {
+        if (model.state == ViewState.busy || type == AIType.error) {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         return Body(model: model);
       },
       onModelReady: (model) async {
-        if (rawText.isNotEmpty && type != AIType.error) {
-          await model.init(propRawText: rawText, propType: type);
+        if (type != AIType.error && scanResultProps != null) {
+          await model.init(scanResult: scanResultProps, propType: type);
         }
       },
       onModelDispose: (model) {

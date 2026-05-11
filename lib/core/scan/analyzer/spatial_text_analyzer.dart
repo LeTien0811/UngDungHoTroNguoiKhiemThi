@@ -12,7 +12,7 @@ class SpatialTextAnalyzer {
   ) {
     try {
       if (text.blocks.isEmpty) {
-        return ScanResult(ScanStatus.notFoundText);
+        return ScanResult(status: ScanStatus.notFoundText);
       }
 
       double minX = double.infinity, minY = double.infinity;
@@ -38,7 +38,7 @@ class SpatialTextAnalyzer {
 
       if (ratio < 0.005) {
         return ScanResult(
-          ScanStatus.notFoundText,
+          status: ScanStatus.notFoundText,
           command: "Vui lòng đưa máy lại gần văn bản hơn",
         );
       }
@@ -54,13 +54,13 @@ class SpatialTextAnalyzer {
       if (deltaX.abs() < thresholdX && deltaY.abs() < thresholdY ||
           isHighQuality) {
         return ScanResult(
-          ScanStatus.ok,
+          status: ScanStatus.ok,
           textDetect: text.text,
           rawRecognizedText: text,
         );
       } else {
         String command = _generateDirectionalCommand(deltaX, deltaY, rotation);
-        return ScanResult(ScanStatus.notFoundText, command: command);
+        return ScanResult( status: ScanStatus.notFoundText, command: command);
       }
     } catch (e) {
       rethrow;

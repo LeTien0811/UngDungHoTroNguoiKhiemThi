@@ -1,9 +1,9 @@
-import 'package:build_access/view_models/onboarding_view_model.dart';
+import 'package:build_access/view_models/setup_profile_view_model.dart';
 import 'package:build_access/widgets/button_action_micro_widget.dart';
 import 'package:flutter/material.dart';
 
 class Body extends StatefulWidget {
-  final OnboardingViewModel model;
+  final SetupProfileViewModel model;
   const Body({super.key, required this.model});
 
   @override
@@ -60,7 +60,7 @@ class _BodyState extends State<Body> {
 
           ButtonActionMicroWidget(
             onLongPressedStart: widget.model.startRecording,
-            onLongPressedEnd: widget.model.stopRecording,
+            onLongPressedEnd: widget.model.stopRecordingAndProcess,
           ),
 
           if (widget.model.isHolding || widget.model.isAiProcessing)

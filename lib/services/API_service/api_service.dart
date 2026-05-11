@@ -1,11 +1,10 @@
 import 'package:build_access/core/network/interceptors/auth_interceptors.dart';
 import 'package:build_access/core/network/interceptors/logging_interceptors.dart';
 import 'package:dio/dio.dart';
-import 'dart:developer' as developer_log;
 
 class APIService {
   late Dio _dio;
-  static const String _baseUrl = "http://10.246.123.182:3000/api/v1/ai";
+  static const String _baseUrl = "https://s7bel7bigtop.shares.zrok.io/api/v1/ai";
   APIService() {
     _dio = Dio(
       BaseOptions(

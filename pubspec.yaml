@@ -24,17 +24,23 @@ dependencies:
       url: https://github.com/netdur/llama_cpp_dart.git
   dio: ^5.9.2
   path_provider: ^2.1.5
-  paddle_ocr: ^0.0.2
   google_mlkit_image_labeling: ^0.14.2
   google_mlkit_object_detection: ^0.15.1
   opencv_dart: ^2.2.1+4
   fasttext_flutter: ^0.1.2
   audioplayers: ^6.6.0
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.1.0
   torch_light: ^1.1.0
   avatar_glow: ^3.0.1
   connectivity_plus: ^7.1.1
   device_info_plus: ^12.4.0
+  sqflite: ^2.4.2+1
+  shared_preferences: ^2.5.5
+  passkeys: ^2.19.0
+  firebase_auth: ^6.4.0
+  get: ^4.7.3
+  google_sign_in: ^7.2.0
+  firebase_core: ^4.7.0
 
 dependency_overrides:
   image: ^4.7.2

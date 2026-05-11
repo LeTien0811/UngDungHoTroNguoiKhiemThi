@@ -1,6 +1,7 @@
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 class BaseView<T extends BaseModel> extends StatefulWidget {
@@ -22,7 +23,7 @@ class BaseView<T extends BaseModel> extends StatefulWidget {
 }
 
 class _BaseViewState<T extends BaseModel> extends State<BaseView<T>> {
-  T model = getIt<T>();
+  T model = Get.find<T>();
 
   @override
   void initState() {

@@ -2,7 +2,7 @@ import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/core/camera/vision_stream_coordinator.dart';
 import 'package:build_access/core/scan/pipeline/ocr_preprocessor.dart';
 import 'package:build_access/core/scan/scan_orchestrator.dart';
-import 'package:build_access/core/utils/navigator_service.dart';
+import 'package:build_access/core/navigator/app_navigator.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/features/vision_asisstant_features/vision_asisstant_feature.dart';
 import 'package:build_access/models/scan/scan_result.dart';
@@ -10,7 +10,7 @@ import 'dart:developer' as developer_log;
 import 'package:build_access/providers/camera_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
-import 'package:build_access/services/scan/haptic_hardware_service.dart';
+import 'package:build_access/services/hardware/haptic_hardware_service.dart';
 import 'package:camera/camera.dart';
 
 class CameraViewModel extends BaseModel {
@@ -39,28 +39,28 @@ class CameraViewModel extends BaseModel {
   }
 
   Future<void> scanSuccess(ScanResult result) async {
-    await _hapticService.executeSystemVibration();
-    await voiceInteractionProvider.stopSpeaking();
-    await voiceInteractionProvider.speak("Đọc được thông tin ${result.textDetect}");
 
-    if(result.textDetect!.trim().isNotEmpty) {
+    await _hapticService.executeSystemVibration();
+
+    if (result.textDetect != null && result.textDetect!.isNotEmpty) {
+      _visionStream.cameraHardwareManager.stopStream();
       developer_log.log(
         'Đọc được: ${result.textDetect}',
         name: 'CameraViewModel.ScanProcess',
       );
 
       Map<String, dynamic> propResult = {
-        "rawText": result.textDetect,
-        "type": AIType.ocrCorrection,
+        "scanResult": result,
+        "type": AIType.DIRECT_VISION,
       };
 
-      getIt<NavigatorService>().pushNamedAndRemoveUntil(
+      getIt<AppNavigator>().navigateTo(
         VisionAsisstantFeature.routeName,
         arguments: propResult,
       );
     } else {
       developer_log.log(
-        'Đọc được rỗng thông tin',
+        'Không đọc được gì',
         name: 'CameraViewModel.ScanProcess',
       );
     }

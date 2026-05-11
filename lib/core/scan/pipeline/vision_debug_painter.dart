@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
 
 class VisionDebugPainter {
   // AI-added: Lưu riêng ảnh cảnh gốc đã xoay đúng chiều ML Kit, rồi vẽ box vật thể
@@ -44,18 +43,6 @@ class VisionDebugPainter {
         );
       }
 
-      if (cropBox != null) {
-        img.drawRect(
-          sceneImage,
-          x1: cropBox.left.round(),
-          y1: cropBox.top.round(),
-          x2: cropBox.right.round(),
-          y2: cropBox.bottom.round(),
-          color: img.ColorRgb8(255, 215, 0),
-          thickness: 4,
-        );
-      }
-
       return Uint8List.fromList(img.encodeJpg(sceneImage, quality: 95));
     } catch (e) {
       return null;
@@ -64,7 +51,7 @@ class VisionDebugPainter {
 
   static Future<Uint8List?> drawTextBoundingBoxes(
     Uint8List compressedBytes,
-    RecognizedText recognizedText,
+    Rect? objectBoxInCrop,
   ) async {
     try {
       final Completer<ui.Image> completer = Completer();
@@ -73,41 +60,41 @@ class VisionDebugPainter {
       });
       final ui.Image image = await completer.future;
 
+      final double targetWidth =
+          objectBoxInCrop?.width ?? image.width.toDouble();
+      final double targetHeight =
+          objectBoxInCrop?.height ?? image.height.toDouble();
       final ui.PictureRecorder recorder = ui.PictureRecorder();
       final Canvas canvas = Canvas(recorder);
 
       canvas.drawImage(image, Offset.zero, Paint());
 
-      final Paint boxPaint = Paint()
-        ..color = Colors.red
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.0;
-
-      final Paint cropPaint = Paint()
-        ..color = Colors.yellow
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4.0;
-
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        cropPaint,
-      );
-
-      for (TextBlock block in recognizedText.blocks) {
-        final Rect rect = block.boundingBox;
-        canvas.drawRect(rect, boxPaint);
+      if (objectBoxInCrop != null) {
+        canvas.drawImageRect(
+          image,
+          objectBoxInCrop,
+          Rect.fromLTWH(
+            0,
+            0,
+            targetWidth,
+            targetHeight,
+          ),
+          Paint(),
+        );
+      } else {
+        canvas.drawImage(image, Offset.zero, Paint());
       }
 
       final ui.Picture picture = recorder.endRecording();
       final ui.Image finalImage = await picture.toImage(
-        image.width,
-        image.height,
+        targetWidth.toInt(),
+        targetHeight.toInt(),
       );
 
       final ByteData? byteData = await finalImage.toByteData(
         format: ui.ImageByteFormat.png,
       );
-      
+
       image.dispose();
       finalImage.dispose();
 

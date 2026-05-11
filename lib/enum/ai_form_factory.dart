@@ -1,9 +1,11 @@
+import 'package:build_access/enum/state.dart';
+
 class AiPromptFactory {
 
-  static String generateLocalPrompt(String type, String data,
+  static String generateLocalPrompt(AIType type, String data,
       String userProfile) {
     switch (type) {
-      case "VOICE_ASSISTANT":
+      case AIType.VOICE_ASSISTANT:
         final String profileContext =
         (userProfile
             .trim()
@@ -22,7 +24,8 @@ class AiPromptFactory {
             "Câu hỏi kèm thông tin sản phẩm: $data\n"
             "<|im_end|>\n"
             "<|im_start|>assistant\n";
-      case "OCR_SCAN":
+
+      case AIType.OCR_SCAN:
         return "<|im_start|>system\n"
             "Bạn là chuyên gia hiệu đính văn bản. Nhiệm vụ: Sửa lỗi chính tả, thêm dấu câu và tách từ cho văn bản OCR bị lỗi.\n"
             "TUYỆT ĐỐI CHỈ TRẢ VỀ VĂN BẢN ĐÃ SỬA, KHÔNG GIẢI THÍCH, KHÔNG CHÀO HỎI.\n"
@@ -35,7 +38,8 @@ class AiPromptFactory {
             "Đầu vào: $data\n"
             "Đầu ra:<|im_end|>\n"
             "<|im_start|>assistant\n";
-      case "BUILD_EXTRACT_BASIC_PROFILE":
+
+      case AIType.BUILD_EXTRACT_BASIC_PROFILE:
         return "<|im_start|>system\n"
             "Nhiệm vụ: Trích xuất thông tin cá nhân từ đoạn văn và xuất ra định dạng JSON.\n"
             "Yêu cầu: Chỉ trích xuất 3 trường: name (Họ tên), phone (Số điện thoại), address (Địa chỉ).\n"

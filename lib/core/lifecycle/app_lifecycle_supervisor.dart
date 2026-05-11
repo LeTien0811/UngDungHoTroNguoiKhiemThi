@@ -1,8 +1,8 @@
-import 'package:build_access/core/VoiceCommand/SemanticRouter/intent_classifier_engine.dart';
+import 'package:build_access/core/VoiceCommand/IntentClassifier/intent_classifier_engine.dart';
 import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
-import 'package:build_access/services/scan/camera_hardware_service.dart';
+import 'package:build_access/services/hardware/camera_hardware_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer_log;
 
@@ -12,8 +12,6 @@ class AppLifecycleSupervisor extends WidgetsBindingObserver {
   final VoiceInteractionProvider _voiceInteractionProvider =
       getIt<VoiceInteractionProvider>();
   final LocalAIEngine _localAIEngine = getIt<LocalAIEngine>();
-  final IntentClassifierEngine _classifierEngine =
-      getIt<IntentClassifierEngine>();
 
   void startSupervising() {
     WidgetsBinding.instance.addObserver(this);

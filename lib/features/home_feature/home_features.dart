@@ -5,7 +5,7 @@ import 'package:build_access/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 
 class HomeFeatures extends StatelessWidget {
-  static String routerName = "/home_feature";
+  static String routerName = "/home";
   const HomeFeatures({super.key});
   @override
   Widget build(BuildContext context) {

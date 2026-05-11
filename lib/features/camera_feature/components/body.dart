@@ -1,4 +1,6 @@
-import 'package:build_access/services/scan/camera_hardware_service.dart';
+import 'package:build_access/core/navigator/app_navigator.dart';
+import 'package:build_access/features/home_feature/home_features.dart';
+import 'package:build_access/services/hardware/camera_hardware_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/view_models/camera_view_model.dart';
@@ -15,6 +17,31 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   late AnimationController _scannerController;
+
+  // AI-added: Giữ đúng aspect ratio của camera preview để tránh cảm giác méo,
+  // scale sai hoặc crop khó hiểu do ép preview full màn hình.
+  Widget _buildCameraPreview() {
+    final cameraService = getIt<CameraHardwareService>();
+    final controller = cameraService.controller;
+
+    if (controller == null || !controller.value.isInitialized) {
+      return const Center(child: CircularProgressIndicator(color: Colors.white));
+    }
+
+    final previewSize = controller.value.previewSize;
+    if (previewSize == null) {
+      return CameraPreview(controller);
+    }
+
+    final previewAspectRatio = previewSize.height / previewSize.width;
+
+    return Center(
+      child: AspectRatio(
+        aspectRatio: previewAspectRatio,
+        child: CameraPreview(controller),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -46,9 +73,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: CameraPreview(
-                getIt<CameraHardwareService>().controller!,
-              ),
+              child: _buildCameraPreview(),
             )
           else
             const Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -144,7 +169,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName),
                 icon: const Icon(
                   Icons.arrow_back_ios_new,
                   color: Colors.white,

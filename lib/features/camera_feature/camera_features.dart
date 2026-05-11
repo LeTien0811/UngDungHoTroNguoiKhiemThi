@@ -5,7 +5,7 @@ import 'package:build_access/view_models/camera_view_model.dart';
 import 'package:flutter/material.dart';
 
 class CameraFeatures extends StatelessWidget {
-  static String routerName = "/camera_feature";
+  static String routerName = "/camera";
   const CameraFeatures({super.key});
 
   @override

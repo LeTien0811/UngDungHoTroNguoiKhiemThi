@@ -1,14 +1,10 @@
 import 'dart:convert';
-import 'dart:ui';
+import 'package:build_access/core/utils/system_lang.dart';
 
-String getSystemLanguageTag() {
-  final locale = PlatformDispatcher.instance.locale;
-  return "${locale.languageCode}-${locale.countryCode}";
-}
 
 class AppSettingsModel {
   final String ttsLanguage;
-  final double ttsSpeechRate;
+  final double ttsSpeech;
   final double ttsPitch;
 
   /// ID voice đã cache (tối ưu cho thiết bị)
@@ -25,7 +21,7 @@ class AppSettingsModel {
 
   AppSettingsModel({
     String? ttsLanguage,
-    this.ttsSpeechRate = 0.5,
+    this.ttsSpeech = 0.5,
     this.ttsPitch = 1.0,
     this.ttsVoiceId = "",
     this.ttsGenderPreference = "auto",
@@ -38,7 +34,7 @@ class AppSettingsModel {
 
   AppSettingsModel copyWith({
     String? ttsLanguage,
-    double? ttsSpeechRate,
+    double? ttsSpeech,
     double? ttsPitch,
     String? ttsVoiceId,
     String? ttsGenderPreference,
@@ -50,7 +46,7 @@ class AppSettingsModel {
   }) {
     return AppSettingsModel(
       ttsLanguage: ttsLanguage ?? this.ttsLanguage,
-      ttsSpeechRate: ttsSpeechRate ?? this.ttsSpeechRate,
+      ttsSpeech: ttsSpeech ?? this.ttsSpeech,
       ttsPitch: ttsPitch ?? this.ttsPitch,
       ttsVoiceId: ttsVoiceId ?? this.ttsVoiceId,
       ttsGenderPreference: ttsGenderPreference ?? this.ttsGenderPreference,
@@ -65,7 +61,7 @@ class AppSettingsModel {
   Map<String, dynamic> toMap() {
     return {
       'ttsLanguage': ttsLanguage,
-      'ttsSpeechRate': ttsSpeechRate,
+      'ttsSpeech': ttsSpeech,
       'ttsPitch': ttsPitch,
       'ttsVoiceId': ttsVoiceId,
       'ttsGenderPreference': ttsGenderPreference,
@@ -80,7 +76,7 @@ class AppSettingsModel {
   factory AppSettingsModel.fromMap(Map<String, dynamic> map) {
     return AppSettingsModel(
       ttsLanguage: map['ttsLanguage'] ?? getSystemLanguageTag(),
-      ttsSpeechRate: map['ttsSpeechRate']?.toDouble() ?? 0.5,
+      ttsSpeech: map['ttsSpeech']?.toDouble() ?? 0.5,
       ttsPitch: map['ttsPitch']?.toDouble() ?? 1.0,
       ttsVoiceId: map['ttsVoiceId'] ?? "",
       ttsGenderPreference: map['ttsGenderPreference'] ?? "auto",

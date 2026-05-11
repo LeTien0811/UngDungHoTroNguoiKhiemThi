@@ -6,6 +6,13 @@ class UserProfileProvider extends BaseModel{
   UserProfileState userState = UserProfileState.uninitialized;
   UserModel? userProfile;
 
+  void deleteUserProfile() {
+    userProfile = null;
+    notifyListeners();
+    setUninitialized();
+    return;
+  }
+
   void setUserProfile(UserModel propsUserProfile) {
     userProfile = propsUserProfile;
     userState = UserProfileState.idle;

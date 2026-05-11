@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/core/utils/navigator_service.dart';
+import 'package:build_access/core/navigator/app_navigator.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
 import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/features/vision_asisstant_features/components/organic_glow_painter.dart';
@@ -27,14 +27,12 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 2000),
     );
     widget.model.addListener(_onViewModelChange);
-    // Bật sóng ngay khi vào màn hình
     _waveController.repeat();
   }
 
   void _onViewModelChange() {
-    // Nếu AI ngừng nói, sóng sẽ chuyển động chậm lại hoặc nhỏ đi (tùy ý ní)
     if (!widget.model.voiceInteractionProvider.isSpeaking) {
-      // _waveController.stop(); // Có thể dừng nếu muốn
+       _waveController.stop();
     } else {
       if (!_waveController.isAnimating) _waveController.repeat();
     }
@@ -44,7 +42,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   void _handleExitToScan() {
     HapticFeedback.mediumImpact();
     widget.model.dispose();
-    getIt<NavigatorService>().pushNamedAndRemoveUntil(
+    getIt<AppNavigator>().pushNamedAndRemoveUntil(
       CameraFeatures.routerName,
     );
   }
@@ -52,7 +50,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   void _handleExitToHome() {
     HapticFeedback.heavyImpact();
     widget.model.dispose();
-    getIt<NavigatorService>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
+    getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
   }
 
   @override
@@ -74,7 +72,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
         backgroundColor: const Color(0xFF050505), // Đen sâu thẳm
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: _handleExitToScan,
+          onForcePressEnd: (_) => _handleExitToScan(),
           onVerticalDragEnd: (details) {
             if (details.primaryVelocity! < -300) _handleExitToHome();
           },

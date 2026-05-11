@@ -12,7 +12,7 @@ class KeywordMatcher {
       "xem lai",
       "danh sach"
     ],
-    IntentType.SETTINGS: [
+    IntentType.SETTING_HARDWARE: [
       "cai dat",
       "cau hinh",
       "chinh"

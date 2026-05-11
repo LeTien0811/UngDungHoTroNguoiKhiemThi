@@ -1,4 +1,4 @@
-import 'package:build_access/core/text_to_speech/tts_voice_resolver.dart';
+import 'package:build_access/core/speech/text_to_speech/tts_voice_resolver.dart';
 
 class GetBestVoice {
   static Future<Map<String, dynamic>?> getVoice({

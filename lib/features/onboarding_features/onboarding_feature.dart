@@ -4,7 +4,7 @@ import 'package:build_access/view_models/onboarding_view_model.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingFeature extends StatefulWidget {
-  static final String routerName = "onboarding";
+  static final String routerName = "/onboarding";
   const OnboardingFeature({super.key});
 
   @override

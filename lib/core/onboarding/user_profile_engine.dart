@@ -18,9 +18,7 @@ class UserProfileEngine {
   final AIOrchestrator _aiEngine = getIt<AIOrchestrator>();
   final VoiceInteractionProvider _voice = getIt<VoiceInteractionProvider>();
   final SpeechToTextEngine _speechToTextEngine = getIt<SpeechToTextEngine>();
-
   final String _key = "user_profile_key";
-
   Future<void> initializer() async {
     try {
       String storage = await _secureStorage.readData(_key) ?? "";
@@ -32,9 +30,7 @@ class UserProfileEngine {
       UserModel newUser = UserModel.fromJson(storage);
       if (newUser.toString().trim().isNotEmpty) {
         _provider.setUserProfile(newUser);
-        getIt<AppNavigator>().pushNamedAndRemoveUntil(
-          HomeFeatures.routerName,
-        );
+        getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
         return;
       }
     } catch (e) {
@@ -47,6 +43,12 @@ class UserProfileEngine {
     await _voice.speak(
       "Nhấn giữ vòng tròn trên màn hình để nói, thả tay ra khi bạn đã nói xong.",
     );
+  }
+
+  void startWalkieTalkie() {
+    developer_log.log("BỘ ĐÀM: Bắt đầu thu...", name: "UserProfileEngine");
+    _voice.stopSpeaking();
+    _voice.startListening();
   }
 
   Future<bool> stopWalkieTalkieAndProcessAI() async {
@@ -76,7 +78,7 @@ class UserProfileEngine {
 
       StringBuffer cleanContentBuffer = StringBuffer();
       await for (final chunk in aiStream) {
-          cleanContentBuffer.write(chunk);
+        cleanContentBuffer.write(chunk);
       }
       String fullRawResponse = cleanContentBuffer.toString();
       developer_log.log(
@@ -98,11 +100,9 @@ class UserProfileEngine {
       await _secureStorage.saveData(_key, cleanJsonString);
       _provider.setUserProfile(userFinal);
 
-     await _voice.speak("Thiết lập thành công. Xin chào ${userFinal.name}.");
+      await _voice.speak("Thiết lập thành công. Xin chào ${userFinal.name}.");
 
-      getIt<AppNavigator>().pushNamedAndRemoveUntil(
-        HomeFeatures.routerName,
-      );
+      getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
 
       return true;
     } catch (e) {

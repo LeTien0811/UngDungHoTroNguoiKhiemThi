@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'dart:developer' as developer_log;
 
-class LogingInterceptor extends Interceptor {
+class LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     developer_log.log(

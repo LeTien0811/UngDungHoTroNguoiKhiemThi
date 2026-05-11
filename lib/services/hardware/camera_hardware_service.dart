@@ -6,19 +6,62 @@ class CameraHardwareService {
   CameraController? controller;
   CameraDescription? camera;
   bool _isDisposing = false;
+  static const ResolutionPreset _previewResolutionPreset = ResolutionPreset.high;
 
   bool get isCameraStream => controller?.value.isStreamingImages ?? false;
   bool get isInitialized => controller?.value.isInitialized ?? false;
   bool get isDisposing => _isDisposing;
 
+  // AI-added: Flutter camera không nói rõ lens nào là main-wide, nên tạm thời
+  // ưu tiên camera sau có id "0" hoặc id số nhỏ nhất. Trên đa số máy Android,
+  // đây là lựa chọn gần với camera chính hơn cách lấy "camera sau đầu tiên".
+  CameraDescription? _pickPreferredBackCamera(List<CameraDescription> cameras) {
+    final backCameras = cameras
+        .where((cam) => cam.lensDirection == CameraLensDirection.back)
+        .toList();
+
+    if (backCameras.isEmpty) return cameras.isNotEmpty ? cameras.first : null;
+
+    backCameras.sort((a, b) {
+      final int scoreA = _cameraPreferenceScore(a);
+      final int scoreB = _cameraPreferenceScore(b);
+      return scoreA.compareTo(scoreB);
+    });
+
+    return backCameras.first;
+  }
+
+  // AI-added: score nhỏ hơn thì ưu tiên hơn. Name "0" thường là main camera.
+  int _cameraPreferenceScore(CameraDescription camera) {
+    final String name = camera.name.trim();
+    final int? numericId = int.tryParse(name);
+    if (numericId != null) {
+      return numericId;
+    }
+    if (name == '0') return 0;
+    return 1000;
+  }
+
   Future<CameraDescription?> getBackCamera() async {
     try {
       final cameras = await availableCameras();
       if (cameras.isNotEmpty) {
-        final backCamera = cameras.firstWhere(
-          (cam) => cam.lensDirection == CameraLensDirection.back,
-          orElse: () => cameras.first,
-        );
+        // AI-added: Log toàn bộ camera để xác định máy đang trả về những lens nào.
+        for (final cam in cameras) {
+          developer_log.log(
+            'camera=${cam.name} lens=${cam.lensDirection} sensorOrientation=${cam.sensorOrientation}',
+            name: 'CameraHardwareService.getBackCamera',
+          );
+        }
+
+        final backCamera = _pickPreferredBackCamera(cameras);
+
+        if (backCamera != null) {
+          developer_log.log(
+            'Chọn camera=${backCamera.name} lens=${backCamera.lensDirection} sensorOrientation=${backCamera.sensorOrientation}',
+            name: 'CameraHardwareService.getBackCamera',
+          );
+        }
 
         return backCamera;
       }
@@ -48,7 +91,7 @@ class CameraHardwareService {
 
       controller = CameraController(
         camera!,
-        ResolutionPreset.medium,
+        _previewResolutionPreset,
         enableAudio: false,
         imageFormatGroup: Platform.isAndroid
             ? ImageFormatGroup.nv21
@@ -56,6 +99,10 @@ class CameraHardwareService {
       );
 
       await controller!.initialize();
+      developer_log.log(
+        'Khởi tạo camera xong: preset=$_previewResolutionPreset previewSize=${controller!.value.previewSize} aspectRatio=${controller!.value.aspectRatio}',
+        name: 'CameraHardwareService.init',
+      );
       return true;
     } catch (e) {
       developer_log.log(

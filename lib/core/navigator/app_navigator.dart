@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-class NavigatorService {
+class AppNavigator {
   Future<void> navigateTo(String routeName, {dynamic arguments}) async {
     Get.toNamed(routeName, arguments: arguments);
   }

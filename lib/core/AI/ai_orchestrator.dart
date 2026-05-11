@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:build_access/core/AI/api_ai/api_ai_engine.dart';
 import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/AI/local_ai/model_downloader_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
-import 'package:build_access/models/AI/ai_form_factory.dart';
+import 'package:build_access/enum/ai_form_factory.dart';
 import 'package:build_access/providers/AI/api_ai_provider.dart';
 import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
@@ -74,11 +76,15 @@ class AIOrchestrator {
     }
   }
 
-  Stream<String> executeAiTask(
-    String type,
-    String data,
-    List<Map<String, String>>? history,
-  ) async* {
+  Stream<String> executeAiTask({
+    required AIType type,
+    required String data,
+    bool isStream = true,
+    String? userText,
+    String? userProfile,
+    String? history,
+    String? imageBase64
+  }) async* {
     final bool currentNetworkStatus = await networkService.hasRealInternet();
     if (currentNetworkStatus) {
       developer_log.log('Đang gọi Cloud AI...', name: 'AiOrchestrator');
@@ -92,7 +98,32 @@ class AIOrchestrator {
             cloudProvider.status != AIStatus.uninitialized) {
           cloudProvider.setReady(true);
         }
-        yield* cloudEngine.streamAIResponse(type, data, history!);
+
+        final rawStream =  cloudEngine.streamAIResponse(
+          type: type.name,
+          data: data,
+          history: history,
+          userProfile: userProfile,
+          userText: userText,
+          imageBase64: imageBase64,
+        );
+        
+        yield* rawStream.map((chunk) {
+          try {
+            final Map<String, dynamic> chunkMap = jsonDecode(chunk);
+            if(chunkMap.containsKey('text')) {
+              return chunkMap['text'];
+            }
+            return chunk;
+          } catch (e) {
+            developer_log.log(
+              'có lỗi ở catch chỗ lọc chunk: $e',
+              name: 'AiOrchestrator',
+            );
+              return chunk;
+          }
+        });
+
         return;
       } catch (e) {
         developer_log.log(
@@ -119,9 +150,15 @@ class AIOrchestrator {
           await initializer();
         }
 
-        String finalLocalPrompt = AiPromptFactory.generateLocalPrompt(type, data, "");
+        String finalLocalPrompt = AiPromptFactory.generateLocalPrompt(
+          type,
+          data,
+          "",
+        );
 
-        final String localResponse = await localEngine.executeTask(finalLocalPrompt);
+        final String localResponse = await localEngine.executeTask(
+          finalLocalPrompt,
+        );
         yield localResponse;
       } catch (e) {
         yield "Hệ thống AI ngoại tuyến gặp sự cố. Vui lòng khởi động lại ứng dụng.";

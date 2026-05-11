@@ -1,3 +1,3 @@
 class SpeechRate {
-  static const List<double> speechRateCycle = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5];
+   static const List<double> speechRateCycle = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5];
 }

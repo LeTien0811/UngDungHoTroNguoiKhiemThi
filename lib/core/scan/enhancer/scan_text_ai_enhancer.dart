@@ -1,17 +1,12 @@
-import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
+import 'dart:convert';
+
+import 'package:build_access/core/AI/ai_orchestrator.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/models/AI/ai_form_factory.dart';
-import 'package:build_access/providers/AI/local_ai_provider.dart';
+import 'package:build_access/enum/state.dart';
 import 'dart:developer' as developer_log;
 
 class ScanTextAiEnhancer {
-  late final LocalAIEngine _localAiEngine;
-  late final LocalAiProvider _aiProvider;
-
-  ScanTextAiEnhancer() {
-    _localAiEngine = getIt<LocalAIEngine>();
-    _aiProvider = getIt<LocalAiProvider>();
-  }
+  final AIOrchestrator _aiEngine = getIt<AIOrchestrator>();
 
   Future<String> enhance(String text) async {
     if (text.trim().isEmpty) {
@@ -26,12 +21,25 @@ class ScanTextAiEnhancer {
         "Gọi AI xử lý $text",
         name: "ScanTextAiEnhancer.enhance",
       );
-      _aiProvider.setProcessing();
-      String prompt = AiPromptFactory.generateLocalPrompt("OCR_SCAN", text, "");
-      String result = await _localAiEngine.executeTask(prompt);
-      _aiProvider.setReady(true);
-      developer_log.log("kết quả$result", name: "ScanTextAiEnhancer.enhance");
-      return result.trim().isNotEmpty ? result : text;
+
+      final Stream<String> aiStream = _aiEngine.executeAiTask(
+        type: AIType.OCR_SCAN,
+        data: text,
+      );
+
+      StringBuffer cleanContentBuffer = StringBuffer();
+      await for (final chunk in aiStream) {
+        try {
+          final Map<String, dynamic> chunkMap = jsonDecode(chunk);
+          if (chunkMap.containsKey('text')) {
+            cleanContentBuffer.write(chunkMap['text']);
+          }
+        } catch (e) {
+          cleanContentBuffer.write(chunk);
+        }
+      }
+      String fullRawResponse = cleanContentBuffer.toString();
+      return fullRawResponse;
     } catch (e) {
       developer_log.log(
         "Lỗi trong quá trình AI cường hóa: $e",

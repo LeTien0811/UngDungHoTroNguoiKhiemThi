@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/models/setting/app_setting_model.dart';
@@ -15,11 +17,15 @@ class VoiceInteractionProvider extends BaseModel {
   bool isSpeaking = false;
   bool isListening = false;
   String recognizedText = "";
+  Completer<void>? _ttsCompleter;
 
   Future<void> initializeVoice(AppSettingsModel appSetting) async {
     _ttsService.onSpeakingStateChanged = (state) {
       if (isSpeaking != state) {
         isSpeaking = state;
+        if (!state) {
+          _completeTts();
+        }
         notifyListeners();
       }
     };
@@ -41,24 +47,47 @@ class VoiceInteractionProvider extends BaseModel {
     await _audioFeedbackService.initialize();
   }
 
-
-  Future<void> speak(String text) async{
-    _audioFeedbackService.stopProcessingSound();
-    _ttsService.speak(text);
+  void _completeTts() {
+    if (_ttsCompleter != null && !_ttsCompleter!.isCompleted) {
+      _ttsCompleter!.complete();
+      _ttsCompleter = null;
+    }
   }
 
-  Future<void> stopSpeaking() async{
-    _ttsService.stop();
+  Future<void> speak(String text) async {
+    _audioFeedbackService.stopProcessingSound();
+    _completeTts();
+
+    recognizedText = "";
+    _ttsCompleter = Completer<void>();
+
+    await _ttsService.speak(text);
+
+    await _ttsCompleter!.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        developer_log.log("Cảnh báo: TTS Timeout", name: "VoiceProvider");
+        _completeTts();
+      },
+    );
+  }
+
+  Future<void> stopSpeaking() async {
+    await _ttsService.stop();
+    _completeTts();
+    notifyListeners();
   }
 
   Future<void> startListening() async {
-    await _ttsService.stop();
+    if (isSpeaking) await stopSpeaking();
+
     await _audioFeedbackService.playNotificationSound();
+    await Future.delayed(const Duration(milliseconds: 200));
     await _sttService.startListening();
   }
 
-  void stopListening() {
-    _sttService.stopListening();
+  Future<void> stopListening() async {
+    await _sttService.stopListening();
   }
 
   Future<void> playProcessingSound() async {
@@ -74,27 +103,12 @@ class VoiceInteractionProvider extends BaseModel {
     await _audioFeedbackService.playErrorSound();
   }
 
-  // Trong class VoiceInteractionProvider
-
-  Future<void> speakAndThenListen(String text) async {
-    developer_log.log("TTS đang đọc: $text", name: "VoiceProvider");
-
-    // Tắt mic nếu đang chạy
-    stopListening();
-
-    // Đợi Flutter TTS đọc xong chữ cuối cùng
-    await speak(text);
-
-    // NGHỈ 0.5 GIÂY: Để hệ điều hành Android kịp giải phóng phần cứng Loa và cấp quyền Mic
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    developer_log.log("TTS đọc xong, Mic bắt đầu mở...", name: "VoiceProvider");
-    startListening();
-  }
-
   @override
   void dispose() {
     _audioFeedbackService.dispose();
+    stopSpeaking();
+    _ttsService.dispose();
+    _sttService.dispose();
     super.dispose();
   }
 }

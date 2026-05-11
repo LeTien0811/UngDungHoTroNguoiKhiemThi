@@ -1,16 +1,17 @@
 import 'dart:ui';
 import 'package:build_access/core/scan/pipeline/vision_debug_painter.dart';
-import 'package:build_access/services/scan/camera_hardware_service.dart';
+import 'package:build_access/models/scan/debug_image_result.dart';
+import 'package:build_access/services/hardware/camera_hardware_service.dart';
 import 'package:build_access/core/image/coordinate_mapper.dart';
 import 'package:build_access/core/image/device_orientation.dart';
 import 'package:build_access/core/image/frame_quality_evaluator.dart';
 import 'package:build_access/core/scan/analyzer/spatial_text_analyzer.dart';
 import 'package:build_access/core/scan/engine/object_detection_engine.dart';
-import 'package:build_access/core/scan/engine/text_scan_engine.dart';
+import 'package:build_access/core/scan/engine/scan_text_engine.dart';
 import 'package:build_access/core/scan/pipeline/ocr_preprocessor.dart';
 import 'package:build_access/core/scan/pipeline/scan_quality_manager.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
-import 'package:build_access/core/utils/file_utils.dart';
+import 'package:build_access/core/utils/image_debug_utils.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/models/scan/frame_quality_evaluator_result.dart';
 import 'package:build_access/models/scan/scan_result.dart';
@@ -35,10 +36,9 @@ class ScanOrchestrator {
 
   final SpatialTextAnalyzer _spatialTextAnalyzer = getIt<SpatialTextAnalyzer>();
 
-  final FrameQualityEvaluator _frameQualityEvaluator = getIt<FrameQualityEvaluator>();
+  final FrameQualityEvaluator _frameQualityEvaluator =
+      getIt<FrameQualityEvaluator>();
 
-  // AI-added: Siết vùng OCR về nhãn chính ở giữa vật thể để giảm đọc rác từ
-  // mép gói, nền phía sau và phần gập hai bên bao bì.
   Rect _focusPrimaryLabelRegion(Rect objectBox, Size imageSize) {
     final bool isPortraitObject = objectBox.height >= objectBox.width;
     final double horizontalInsetRatio = isPortraitObject ? 0.18 : 0.14;
@@ -72,13 +72,13 @@ class ScanOrchestrator {
       if (status == ScanStatus.blur) {
         await _cameraHardwareManager.startFocus();
       }
-      return ScanResult(status, command: command);
+      return ScanResult(status: status, command: command);
     }
 
-    return ScanResult(status, command: "");
+    return ScanResult(status: status, command: "");
   }
 
-  void _exportDebugImageInBackground({
+  Future<DebugImageResult?> _exportDebugImageInBackground({
     required Uint8List sceneLumaBytes,
     required int sceneWidth,
     required int sceneHeight,
@@ -88,48 +88,53 @@ class ScanOrchestrator {
     required Uint8List ocrDebugBytes,
     required RecognizedText text,
     required int rotationDegree,
-  }) {
-    Future.microtask(() async {
-      try {
-        final Uint8List? sceneDebugBytes = VisionDebugPainter.drawSceneBoundingBoxes(
-          lumaBytes: sceneLumaBytes,
-          width: sceneWidth,
-          height: sceneHeight,
-          stride: sceneStride,
-          rotationDegree: rotationDegree,
-          objectBox: objectBox,
-          cropBox: cropBox,
-        );
-
-        if (sceneDebugBytes != null) {
-          ImageDebugUtils.saveDebugImage(
-            sceneDebugBytes,
-            filePrefix: 'scene_debug',
-          );
-        }
-
-        final Uint8List? boxedImageBytes = await VisionDebugPainter.drawTextBoundingBoxes(
-          ocrDebugBytes,
-          text,
-        );
-
-        if (boxedImageBytes != null) {
-          ImageDebugUtils.saveDebugImage(
-            boxedImageBytes,
+  }) async {
+    try {
+      final Uint8List? sceneDebugBytes =
+          VisionDebugPainter.drawSceneBoundingBoxes(
+            lumaBytes: sceneLumaBytes,
+            width: sceneWidth,
+            height: sceneHeight,
+            stride: sceneStride,
             rotationDegree: rotationDegree,
-            filePrefix: 'ocr_crop',
+            objectBox: objectBox,
+            cropBox: cropBox,
           );
-        }
-      } catch (e) {
-        developer_log.log("Lỗi ghi file debug: $e", name: "ScanOrchestrator");
+
+      final Uint8List? boxedImageBytes =
+          await VisionDebugPainter.drawTextBoundingBoxes(
+            ocrDebugBytes,
+            objectBox,
+          );
+
+      if (sceneDebugBytes != null) {
+         await ImageDebugUtils.saveDebugImage(
+          sceneDebugBytes,
+          filePrefix: 'scene_debug',
+        );
+
       }
-    });
+
+      if (boxedImageBytes != null) {
+        DebugImageResult? debugImage = await ImageDebugUtils.saveDebugImage(
+          boxedImageBytes,
+          rotationDegree: rotationDegree,
+          filePrefix: 'ocr_crop',
+        );
+        return debugImage;
+      }
+
+      return null;
+    } catch (e) {
+      developer_log.log("Lỗi ghi file debug: $e", name: "ScanOrchestrator");
+      return null;
+    }
   }
 
   Future<ScanResult> process(CameraImage imageFromFrame) async {
     try {
-      FrameQualityEvaluatorResult resultFormat = await _frameQualityEvaluator.
-          processImageFromFrame(
+      FrameQualityEvaluatorResult resultFormat = await _frameQualityEvaluator
+          .processImageFromFrame(
             imageFromFrame,
             _cameraHardwareManager.camera!,
             _cameraHardwareManager.controller!,
@@ -165,8 +170,8 @@ class ScanOrchestrator {
               imageFromFrame.width.toDouble(),
             )
           : Size(
-            imageFromFrame.width.toDouble(),
-            imageFromFrame.height.toDouble(),
+              imageFromFrame.width.toDouble(),
+              imageFromFrame.height.toDouble(),
             );
 
       final Rect focusedLabelRegion = _focusPrimaryLabelRegion(
@@ -180,22 +185,28 @@ class ScanOrchestrator {
         sensorOrientation: _cameraHardwareManager.camera!.sensorOrientation,
       );
 
-      final Map<String, dynamic>? openCvPreprocess = await _ocrPreprocessor.processImage(
-        imageFromFrame.planes[0].bytes,
-        imageFromFrame.width,
-        imageFromFrame.height,
-        crop: mappedCrop,
-      ) as Map<String, dynamic>?;
+      final Map<String, dynamic>? openCvPreprocess =
+          await _ocrPreprocessor.processImage(
+                imageFromFrame.planes[0].bytes,
+                imageFromFrame.width,
+                imageFromFrame.height,
+                crop: mappedCrop,
+              )
+              as Map<String, dynamic>?;
 
       if (openCvPreprocess == null) {
-        developer_log.log("Lỗi: Isolate OpenCV trả về null", name: "ScanOrchestrator");
+        developer_log.log(
+          "Lỗi: Isolate OpenCV trả về null",
+          name: "ScanOrchestrator",
+        );
         return await _handleErrorResult(
           ScanStatus.recapture,
           "Ảnh không rõ nét, vui lòng thử lại.",
         );
       }
 
-      final Uint8List optimizedBytes = openCvPreprocess['ocrBytes'] as Uint8List;
+      final Uint8List optimizedBytes =
+          openCvPreprocess['ocrBytes'] as Uint8List;
       final Uint8List debugBytes = openCvPreprocess['debugBytes'] as Uint8List;
       final int outW = openCvPreprocess['outW'] as int;
       final int outH = openCvPreprocess['outH'] as int;
@@ -243,7 +254,7 @@ class ScanOrchestrator {
       _scanQualityManager.isThresholdReached(ScanStatus.ok);
 
       if (kDebugMode && debugBytes.isNotEmpty) {
-        _exportDebugImageInBackground(
+        DebugImageResult? debugResult = await _exportDebugImageInBackground(
           sceneLumaBytes: imageFromFrame.planes[0].bytes,
           sceneWidth: imageFromFrame.width,
           sceneHeight: imageFromFrame.height,
@@ -254,6 +265,22 @@ class ScanOrchestrator {
           text: recognizedText,
           rotationDegree: rotationDegree,
         );
+        if (debugResult != null) {
+          developer_log.log(
+            "Lưu base64Image: ${debugResult.base64Image}",
+            name: "ScanOrchestrator.process",
+          );
+          spatialResult = spatialResult.copyWith(
+            directoryPath: debugResult.imageName,
+            base64Image: debugResult.base64Image,
+          );
+        } else {
+          return await _handleErrorResult(
+            spatialResult.status,
+            spatialResult.command ??
+                "Không nhận diện được nội dung, vui lòng thử lại",
+          );
+        }
       }
 
       return spatialResult;
@@ -268,5 +295,4 @@ class ScanOrchestrator {
       );
     }
   }
-
 }

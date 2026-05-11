@@ -7,8 +7,18 @@ class ScanResult {
   final RecognizedText? rawRecognizedText;
   final String? command;
   final String? error;
+  final String? directoryPath;
+  final String? base64Image;
 
-  ScanResult(this.status, {this.textDetect, this.command, this.error, this.rawRecognizedText});
+  ScanResult({
+    required this.status,
+    this.textDetect,
+    this.command,
+    this.error,
+    this.rawRecognizedText,
+    this.directoryPath,
+    this.base64Image,
+  });
 
   ScanResult copyWith({
     ScanStatus? status,
@@ -16,13 +26,17 @@ class ScanResult {
     RecognizedText? rawRecognizedText,
     String? command,
     String? error,
+    String? directoryPath,
+    String? base64Image,
   }) {
     return ScanResult(
-      status ?? this.status,
+      status: status ?? this.status,
       textDetect: textDetect ?? this.textDetect,
       rawRecognizedText: rawRecognizedText ?? this.rawRecognizedText,
       command: command ?? this.command,
       error: error ?? this.error,
+      directoryPath: directoryPath ?? this.directoryPath,
+      base64Image: base64Image ?? this.base64Image,
     );
   }
 }

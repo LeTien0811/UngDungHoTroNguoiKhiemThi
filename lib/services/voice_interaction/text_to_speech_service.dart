@@ -1,4 +1,4 @@
-import 'package:build_access/core/text_to_speech/get_best_voice.dart';
+import 'package:build_access/core/speech/text_to_speech/get_best_voice.dart';
 import 'package:build_access/models/setting/app_setting_model.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:developer' as developer_log;
@@ -36,7 +36,7 @@ class TextToSpeechService {
       });
     }
 
-    await _flutterTts.setSpeechRate(appSetting.ttsSpeechRate);
+    await _flutterTts.setSpeechRate(appSetting.ttsSpeech);
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(appSetting.ttsPitch);
     await _flutterTts.awaitSpeakCompletion(true);
@@ -59,7 +59,7 @@ class TextToSpeechService {
 
   Future<void> applyHardwareSettings(AppSettingsModel settings) async {
     try {
-      await _flutterTts.setSpeechRate(settings.ttsSpeechRate);
+      await _flutterTts.setSpeechRate(settings.ttsSpeech);
 
       await _flutterTts.setPitch(settings.ttsPitch);
 
@@ -69,7 +69,7 @@ class TextToSpeechService {
           "locale": settings.ttsLanguage,
         });
       }
-
+      return;
     } catch (e) {
       developer_log.log("Không thể cập nhật cấu hình loa: $e", name: "VoiceProvider");
     }
@@ -82,7 +82,7 @@ class TextToSpeechService {
     }
   }
 
-  void speak(String text) {
+  Future<void> speak(String text) async{
     final now = DateTime.now();
     if (text == _lastSpokenText &&
         now.difference(_lastSpokenTime).inSeconds < 3) {

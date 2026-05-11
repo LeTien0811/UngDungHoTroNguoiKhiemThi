@@ -1,8 +1,8 @@
-class ApiConfig {
-  static const String projectId = "hottronguoikhiemthi-bfa20";
+class AuthApiConfig {
+  static const String projectId = "hotronguoikhiemthi-bfa20";
   static const String region = "asia-east1";
 
-  static const String ip = "10.246.123.164:5001";
+  static const String ip = "192.168.1.8:5001";
 
   static const String baseFunctionUrl = "http://$ip/$projectId/$region";
 

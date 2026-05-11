@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/AI/api_ai_provider.dart';
-import 'package:build_access/services/AI_service/api_service.dart';
-import 'package:build_access/services/secure_storage_service.dart';
+import 'package:build_access/services/API_service/api_service.dart';
+import 'package:build_access/services/storage/secure_storage_service.dart';
 import 'package:dio/dio.dart';
 import 'dart:developer' as developer_log;
 
@@ -11,11 +11,14 @@ class APIAIEngine {
   final APIService _apiService = getIt<APIService>();
   final SecureStorageService _storage = getIt<SecureStorageService>();
 
-  Stream<String> streamAIResponse(
-    String type,
-    String dataContent,
-    List<Map<String, String>> history,
-  ) async* {
+  Stream<String> streamAIResponse({
+    required String type,
+    required String data,
+    String? userText,
+    String? userProfile,
+    String? history,
+    String? imageBase64
+  }) async* {
     try {
       provider.setProcessing();
 
@@ -24,7 +27,14 @@ class APIAIEngine {
 
       Response<ResponseBody> response = await _apiService.post(
         '/stream',
-        data: {"type": type, "data": dataContent, "history": history},
+        data: {
+          "type": type,
+          "data": data,
+          "userText": userText ?? "",
+          "userProfile": userProfile,
+          "history": history ?? "",
+          "imageBase64": imageBase64 ?? ""
+        },
         options: Options(responseType: ResponseType.stream),
       );
 
@@ -36,8 +46,7 @@ class APIAIEngine {
       await for (final line in stream) {
         if (line.startsWith('data: ')) {
           final dataString = line.substring(6);
-          if (dataString == '[DONE]')
-            break;
+          if (dataString == '[DONE]') break;
 
           yield dataString;
         }

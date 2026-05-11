@@ -20,7 +20,7 @@ typedef DestroyDart = void Function(Pointer<Void> handle);
 
 class IntentFFIService {
   late final DynamicLibrary _lib;
-  late final Pointer<Void> _handle;
+  Pointer<Void>? _handle;
 
   late final CreateFastTextDart _create;
   late final LoadModelDart _load;
@@ -43,7 +43,7 @@ class IntentFFIService {
       _destroy = _lib.lookupFunction<DestroyC, DestroyDart>('destroy_fasttext');
 
       _handle = _create();
-      return true;
+      return _handle != nullptr;
     } catch (e) {
       developer_log.log('init không thành công: $e', name: "IntentFFIService.initialize");
       return false;
@@ -53,8 +53,9 @@ class IntentFFIService {
   bool loadModel(String absolutePath) {
     try {
       final pathPtr = absolutePath.toNativeUtf8();
-      _load(_handle, pathPtr);
+      _load(_handle!, pathPtr);
       malloc.free(pathPtr);
+      _isNativeReady = true;
       return true;
     } catch(e) {
       developer_log.log('loadModel không thành công: $e', name: "IntentFFIService.loadModel");
@@ -69,7 +70,7 @@ class IntentFFIService {
     }
 
     final textPtr = text.toNativeUtf8();
-    final resultPtr = _predict(_handle, textPtr);
+    final resultPtr = _predict(_handle!, textPtr);
 
     final String result = resultPtr.toDartString();
 
@@ -81,6 +82,6 @@ class IntentFFIService {
 
   void dispose() {
     _isNativeReady = false;
-    _destroy(_handle);
+    _destroy(_handle!);
   }
 }
