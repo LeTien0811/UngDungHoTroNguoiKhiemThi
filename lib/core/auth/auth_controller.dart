@@ -47,41 +47,40 @@ class AuthController extends GetxController {
 
     String? savedEmail = _provider.userProfile?.email;
     if (savedEmail != null && savedEmail != "Không rõ") {
-      await _autoLoginWithPasskey(savedEmail);
+      await autoLoginWithPasskey(savedEmail);
     } else {
       getIt<AppNavigator>().pushNamedAndRemoveUntil(
         OnboardingFeature.routerName,
       );
-      await _voice.speak(
-        "Chào mừng. Hãy chạm hai lần vào màn hình để liên kết với Google.",
-      );
     }
   }
 
-  Future<void> _autoLoginWithPasskey(String email) async {
+  Future<void> autoLoginWithPasskey(String email, {bool isGo = true}) async {
     try {
       isLoading.value = true;
       await _passkeyService.loginWithPasskey(email);
-      getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
+      if (isGo) {
+        getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
+      }
+      return;
     } catch (e) {
       await _storage.deleteUser();
-      await _voice.speak(
-        "Không thể tự động đăng nhập. Vui lòng liên kết lại tài khoản.",
-      );
+      await _voice.speak('auth_auto_login_failed'.tr);
       isLoading.value = false;
+      rethrow;
     }
   }
 
   Future<void> handleGoogleAndPasskeyRegistration() async {
     try {
       isLoading.value = true;
-      await _voice.speak("Đang mở cổng đăng nhập Google.");
+      await _voice.speak('auth_opening_google'.tr);
 
       final GoogleSignInAccount? googleAccount = await _googleSignIn
           .authenticate();
 
       if (googleAccount == null) {
-        await _voice.speak("Bạn đã hủy đăng nhập.");
+        await _voice.speak('auth_login_cancelled'.tr);
         isLoading.value = false;
         return;
       }
@@ -92,6 +91,17 @@ class AuthController extends GetxController {
       final GoogleSignInClientAuthorization clientAuth = await googleAccount
           .authorizationClient
           .authorizeScopes(['email', 'profile']);
+      bool checkStatus = await _passkeyService.checkStatusAccount(
+        googleAccount.email,
+      );
+      if (checkStatus) {
+        developer_log.log(
+          "đã tồn tại đăng nhập",
+          name: "handleGoogleAndPasskeyRegistration",
+        );
+        await autoLoginWithPasskey(googleAccount.email);
+        return;
+      }
 
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: clientAuth.accessToken,
@@ -122,10 +132,23 @@ class AuthController extends GetxController {
           }
         } catch (e) {
           deviceName = "Mobile_Device_${user.uid.substring(0, 5)}";
+          if (e.toString().contains('excludeCredentials') ||
+              e.toString().contains("Null")) {
+            developer_log.log(
+              "thiết bị có thể đã có khóa",
+              name: "handleGoogleAndPasskeyRegistration",
+            );
+
+            await autoLoginWithPasskey(user.email!);
+          } else {
+            rethrow;
+          }
         }
 
         await _passkeyService.registerNewDeviceWithPasskey(user, deviceName);
-        await _voice.speak("Chào mừng ${_provider.userProfile!.name}");
+        await _voice.speak(
+          'auth_welcome_user'.trParams({'name': _provider.userProfile!.name}),
+        );
         getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
       }
     } catch (e) {
@@ -133,23 +156,24 @@ class AuthController extends GetxController {
         "lỗi liên kết google: $e",
         name: "handleGoogleAndPasskeyRegistration",
       );
+
       await _storage.deleteUser();
       await _auth.signOut();
       await _googleSignIn.signOut();
-      await _voice.speak("Lỗi liên kết. Vui lòng thử lại.");
+      await _voice.speak('auth_link_error'.tr);
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> logout() async {
-    await _voice.speak("Đang đăng xuất.");
+    await _voice.speak('auth_logging_out'.tr);
     await _storage.deleteUser();
     await _auth.signOut();
     await _googleSignIn.signOut();
 
     getIt<AppNavigator>().pushNamedAndRemoveUntil(SplashFeature.routerName);
     await Future.delayed(const Duration(milliseconds: 500));
-    await _voice.speak("Đã đăng xuất thành công.");
+    await _voice.speak('auth_logout_success'.tr);
   }
 }

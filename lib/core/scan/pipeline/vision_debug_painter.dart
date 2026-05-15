@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'dart:ui' as ui;
 
 class VisionDebugPainter {
   // AI-added: Lưu riêng ảnh cảnh gốc đã xoay đúng chiều ML Kit, rồi vẽ box vật thể
@@ -43,64 +41,27 @@ class VisionDebugPainter {
         );
       }
 
+      if (cropBox != null) {
+        img.drawRect(
+          sceneImage,
+          x1: cropBox.left.round(),
+          y1: cropBox.top.round(),
+          x2: cropBox.right.round(),
+          y2: cropBox.bottom.round(),
+          color: img.ColorRgb8(255, 215, 0),
+          thickness: 4,
+        );
+      }
+
       return Uint8List.fromList(img.encodeJpg(sceneImage, quality: 95));
     } catch (e) {
       return null;
     }
   }
 
-  static Future<Uint8List?> drawTextBoundingBoxes(
-    Uint8List compressedBytes,
-    Rect? objectBoxInCrop,
-  ) async {
-    try {
-      final Completer<ui.Image> completer = Completer();
-      ui.decodeImageFromList(compressedBytes, (ui.Image img) {
-        completer.complete(img);
-      });
-      final ui.Image image = await completer.future;
-
-      final double targetWidth =
-          objectBoxInCrop?.width ?? image.width.toDouble();
-      final double targetHeight =
-          objectBoxInCrop?.height ?? image.height.toDouble();
-      final ui.PictureRecorder recorder = ui.PictureRecorder();
-      final Canvas canvas = Canvas(recorder);
-
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      if (objectBoxInCrop != null) {
-        canvas.drawImageRect(
-          image,
-          objectBoxInCrop,
-          Rect.fromLTWH(
-            0,
-            0,
-            targetWidth,
-            targetHeight,
-          ),
-          Paint(),
-        );
-      } else {
-        canvas.drawImage(image, Offset.zero, Paint());
-      }
-
-      final ui.Picture picture = recorder.endRecording();
-      final ui.Image finalImage = await picture.toImage(
-        targetWidth.toInt(),
-        targetHeight.toInt(),
-      );
-
-      final ByteData? byteData = await finalImage.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-
-      image.dispose();
-      finalImage.dispose();
-
-      return byteData?.buffer.asUint8List();
-    } catch (e) {
-      return null;
-    }
+  // AI-added: `ocrDebugBytes` ở pipeline hiện tại đã là ảnh crop cuối cùng
+  // từ object/focus box. Không crop tiếp bằng OCR box nữa để tránh lệch hệ tọa độ.
+  static Uint8List buildOcrCropPreview(Uint8List compressedBytes) {
+    return compressedBytes;
   }
 }

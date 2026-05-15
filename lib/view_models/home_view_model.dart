@@ -4,6 +4,7 @@ import 'package:build_access/core/speech/speech_to_text/speech_to_text_engine.da
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/services/hardware/haptic_hardware_service.dart';
+import 'package:get/get.dart';
 
 class HomeViewModel extends BaseModel {
   bool isHolding = false;
@@ -11,9 +12,7 @@ class HomeViewModel extends BaseModel {
   final VoiceCommandEngine _engine = getIt<VoiceCommandEngine>();
 
   Future<void> init() async {
-    await getIt<VoiceInteractionProvider>().speak(
-      "Xin chào, Vuốt từ trên xuống để thực hiện chức năng quét thông thông minh, nhấn giữ giữa màn hình để dùng chức năng hỏi.",
-    );
+    await getIt<VoiceInteractionProvider>().speak('home_welcome_instruction'.tr);
   }
 
   Future<void> startRecording() async {
@@ -29,7 +28,6 @@ class HomeViewModel extends BaseModel {
 
   Future<void> stopRecording() async {
     if (!isHolding || isAIProcessing) return;
-
     getIt<HapticHardwareService>().executeSystemVibration();
     isHolding = false;
     isAIProcessing = true;

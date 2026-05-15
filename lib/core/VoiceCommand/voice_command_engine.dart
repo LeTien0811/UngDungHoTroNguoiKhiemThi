@@ -2,8 +2,10 @@ import 'package:build_access/core/VoiceCommand/IntentClassifier/intent_classifie
 import 'package:build_access/core/VoiceCommand/command_router.dart';
 import 'package:build_access/core/speech/speech_to_text/speech_to_text_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/core/widgets/voice_confirm_widget.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
+import 'package:get/get.dart';
 import 'dart:developer' as developer_log;
 
 class VoiceCommandEngine {
@@ -18,7 +20,7 @@ class VoiceCommandEngine {
       final String userVoice = await _speechToTextEngine.stopWalkieTalkie();
 
       if (userVoice.trim().isEmpty) {
-        await _voice.speak("Tôi chưa nghe rõ, vui lòng nhấn giữ và thử lại.");
+        await _voice.speak('voice_not_heard_clear'.tr);
         developer_log.log("User Voice Rỗng", name: "UserProfileEngine");
         return false;
       }
@@ -28,24 +30,32 @@ class VoiceCommandEngine {
         name: "UserProfileEngine.getUserProfile",
       );
 
-      // AI note: Dùng cùng một transcript đã chuẩn hóa cho classifier và router để tránh lệch hành vi xử lý.
-      final String normalizedVoice = _intentClassifierEngine.normalizeVoiceIntent(
-        userVoice,
-      );
-      developer_log.log(
-        "Transcript đã chuẩn hóa: $normalizedVoice",
-        name: "UserProfileEngine.getUserProfile",
-      );
+      String cofirmProcess =
+          "confirm_general_request".tr + userVoice + "confirm_instruction".tr;
 
-      final IntentType intentType = await _intentClassifierEngine
-          .processIntentClassifier(normalizedVoice);
+      bool comfirm =
+          await VoiceConfirmWidget.show(message: cofirmProcess) ?? false;
 
-      await _commandRouter.router(intentType, normalizedVoice);
+      if (comfirm) {
+        final String normalizedVoice = _intentClassifierEngine
+            .normalizeVoiceIntent(userVoice);
+        developer_log.log(
+          "Transcript đã chuẩn hóa: $normalizedVoice",
+          name: "UserProfileEngine.getUserProfile",
+        );
 
-      developer_log.log(
-        "Kết quả trả về: ${intentType.toString()}",
-        name: "UserProfileEngine.getUserProfile",
-      );
+        final IntentType intentType = await _intentClassifierEngine
+            .processIntentClassifier(normalizedVoice);
+
+        await _commandRouter.router(intentType, normalizedVoice);
+
+        developer_log.log(
+          "Kết quả trả về: ${intentType.toString()}",
+          name: "UserProfileEngine.getUserProfile",
+        );
+      } else {
+        await _voice.speak('confirm_action_stopped'.tr);
+      }
 
       return true;
     } catch (e) {

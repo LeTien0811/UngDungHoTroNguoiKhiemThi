@@ -6,6 +6,7 @@ import 'package:build_access/enum/state.dart';
 import 'package:build_access/view_models/camera_view_model.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Body extends StatefulWidget {
   final CameraViewModel model;
@@ -186,8 +187,8 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
             right: 0,
             child: Column(
               children: [
-                const Text(
-                  "ĐANG TỰ ĐỘNG QUÉT",
+                Text(
+                  'camera_auto_scanning'.tr,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -196,7 +197,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "Hãy đưa khung hình đối diện văn bản",
+                  'camera_align_instruction'.tr,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 14,

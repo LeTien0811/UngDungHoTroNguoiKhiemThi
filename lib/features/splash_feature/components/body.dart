@@ -1,3 +1,4 @@
+import 'package:build_access/config/my_colors.dart';
 import 'package:build_access/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 
@@ -38,19 +39,19 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050505), // Nền đen sâu cực sang
+      backgroundColor: MyColors.bgDark, // Nền đen sâu cực sang
       body: Stack(
         children: [
           // Hiệu ứng các hạt sáng mờ ảo ở nền
           Positioned(
             top: -100,
             right: -50,
-            child: _buildBlurCircle(const Color(0xFF4285F4), 200),
+            child: _buildBlurCircle(MyColors.primaryGold, 200),
           ),
           Positioned(
             bottom: -80,
             left: -50,
-            child: _buildBlurCircle(const Color(0xFF34A853), 150),
+            child: _buildBlurCircle(MyColors.successGreen, 150),
           ),
 
           Center(
@@ -67,7 +68,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       color: Colors.white.withValues(alpha: 0.05),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF4285F4).withValues(alpha: 0.3),
+                          color: MyColors.primaryGold.withValues(alpha: 0.3),
                           blurRadius: 40,
                           spreadRadius: 10,
                         ),
@@ -76,7 +77,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     child: const Icon(
                       Icons.remove_red_eye_rounded, // Hoặc logo dự án của ní
                       size: 80,
-                      color: Colors.white,
+                      color: MyColors.textWhite,
                     ),
                   ),
                 ),
@@ -85,14 +86,14 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 // Tên ứng dụng với Gradient
                 ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF4285F4), Color(0xFF91B9FF)],
+                    colors: [MyColors.primaryGold, MyColors.textWhite],
                   ).createShader(bounds),
                   child: const Text(
                     "BUILD ACCESS",
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: MyColors.textWhite,
                       letterSpacing: 4,
                     ),
                   ),
@@ -102,7 +103,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 Text(
                   "AI ASSISTANT FOR THE BLIND",
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: MyColors.textWhite.withValues(alpha: 0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 2,
@@ -126,14 +127,14 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(2),
                     child: const LinearProgressIndicator(
                       backgroundColor: Colors.white10,
-                      color: Color(0xFF4285F4),
+                      color: MyColors.primaryGold,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 const Text(
                   "Đang khởi tạo hệ thống AI...",
-                  style: TextStyle(color: Colors.white38, fontSize: 10),
+                  style: TextStyle(color: MyColors.textGrey, fontSize: 10),
                 ),
               ],
             ),

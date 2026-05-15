@@ -17,6 +17,7 @@ import 'package:build_access/models/scan/frame_quality_evaluator_result.dart';
 import 'package:build_access/models/scan/scan_result.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'dart:developer' as developer_log;
 
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -86,7 +87,6 @@ class ScanOrchestrator {
     required Rect objectBox,
     required Rect cropBox,
     required Uint8List ocrDebugBytes,
-    required RecognizedText text,
     required int rotationDegree,
   }) async {
     try {
@@ -101,11 +101,9 @@ class ScanOrchestrator {
             cropBox: cropBox,
           );
 
-      final Uint8List? boxedImageBytes =
-          await VisionDebugPainter.drawTextBoundingBoxes(
-            ocrDebugBytes,
-            objectBox,
-          );
+      final Uint8List boxedImageBytes = VisionDebugPainter.buildOcrCropPreview(
+        ocrDebugBytes,
+      );
 
       if (sceneDebugBytes != null) {
          await ImageDebugUtils.saveDebugImage(
@@ -115,16 +113,12 @@ class ScanOrchestrator {
 
       }
 
-      if (boxedImageBytes != null) {
-        DebugImageResult? debugImage = await ImageDebugUtils.saveDebugImage(
-          boxedImageBytes,
-          rotationDegree: rotationDegree,
-          filePrefix: 'ocr_crop',
-        );
-        return debugImage;
-      }
-
-      return null;
+      DebugImageResult? debugImage = await ImageDebugUtils.saveDebugImage(
+        boxedImageBytes,
+        rotationDegree: rotationDegree,
+        filePrefix: 'ocr_crop',
+      );
+      return debugImage;
     } catch (e) {
       developer_log.log("Lỗi ghi file debug: $e", name: "ScanOrchestrator");
       return null;
@@ -143,7 +137,7 @@ class ScanOrchestrator {
       if (resultFormat.status != ScanStatus.ok) {
         return await _handleErrorResult(
           resultFormat.status,
-          "Ảnh mờ vui lòng thử lại",
+          'scan_blur_retry'.tr,
         );
       }
 
@@ -155,7 +149,7 @@ class ScanOrchestrator {
       if (bestObject == null) {
         return await _handleErrorResult(
           ScanStatus.notFoundObject,
-          "Không nhìn thấy vật thể nào phía trước!. Vui lòng đưa điện thoại chạm vào vật muốn quét rồi từ từ đưa ra xa theo đường thẳng tầm 2 gang tay",
+          'scan_no_object'.tr,
         );
       }
 
@@ -201,7 +195,7 @@ class ScanOrchestrator {
         );
         return await _handleErrorResult(
           ScanStatus.recapture,
-          "Ảnh không rõ nét, vui lòng thử lại.",
+          'scan_unclear_retry'.tr,
         );
       }
 
@@ -214,7 +208,7 @@ class ScanOrchestrator {
       if (optimizedBytes.isEmpty) {
         return await _handleErrorResult(
           ScanStatus.recapture,
-          "Ánh sáng yếu hoặc ảnh mờ, vui lòng thử lại.",
+          'scan_low_light_blur'.tr,
         );
       }
 
@@ -246,8 +240,7 @@ class ScanOrchestrator {
       if (spatialResult.status != ScanStatus.ok) {
         return await _handleErrorResult(
           spatialResult.status,
-          spatialResult.command ??
-              "Không nhận diện được nội dung, vui lòng thử lại",
+          spatialResult.command ?? 'scan_cannot_recognize'.tr,
         );
       }
 
@@ -262,14 +255,9 @@ class ScanOrchestrator {
           objectBox: bestObject,
           cropBox: focusedLabelRegion,
           ocrDebugBytes: debugBytes,
-          text: recognizedText,
           rotationDegree: rotationDegree,
         );
         if (debugResult != null) {
-          developer_log.log(
-            "Lưu base64Image: ${debugResult.base64Image}",
-            name: "ScanOrchestrator.process",
-          );
           spatialResult = spatialResult.copyWith(
             directoryPath: debugResult.imageName,
             base64Image: debugResult.base64Image,
@@ -277,8 +265,7 @@ class ScanOrchestrator {
         } else {
           return await _handleErrorResult(
             spatialResult.status,
-            spatialResult.command ??
-                "Không nhận diện được nội dung, vui lòng thử lại",
+            spatialResult.command ?? 'scan_cannot_recognize'.tr,
           );
         }
       }
@@ -291,7 +278,7 @@ class ScanOrchestrator {
       );
       return await _handleErrorResult(
         ScanStatus.error,
-        "Ứng dụng gặp xí lỗi rùi, bạn vui lòng thoát ứng dụn và mở lại nhe",
+        'scan_error_restart'.tr,
       );
     }
   }

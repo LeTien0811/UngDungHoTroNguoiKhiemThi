@@ -2,7 +2,6 @@ import 'package:build_access/core/auth/auth_controller.dart';
 import 'package:build_access/core/base/base_model.dart';
 import 'package:build_access/core/setting/engine/app_setting_engine.dart';
 import 'package:build_access/core/setups/permissions_setup.dart';
-import 'package:build_access/core/onboarding/user_profile_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/providers/app_setting_provider.dart';
@@ -34,6 +33,12 @@ class SplashViewModel extends BaseModel {
         "khoi tao app setting khong thanh cong",
         name: "SplashViewModel.initializerApp",
       );
+    } else {
+      // Cập nhật lại ngôn ngữ hệ thống cho GetX ngay sau khi load xong từ Storage
+      final localeParts = _appSettingProvider.appSetting.ttsLanguage.split('-');
+      if (localeParts.length == 2) {
+        Get.updateLocale(Locale(localeParts[0], localeParts[1]));
+      }
     }
 
     await _flashLightService.init();
@@ -53,16 +58,12 @@ class SplashViewModel extends BaseModel {
     );
 
     if (!hasCameraPermission || !hasMicPermission) {
-      _voiceInteractionProvider.speak(
-        "Vui lòng cấp quyền camera và micro trong cài đặt để sử dụng ứng dụng.",
-      );
+      _voiceInteractionProvider.speak('splash_permission_required'.tr);
       return;
     }
 
     try {
-      _voiceInteractionProvider.speak(
-        "Đang kiểm tra dữ liệu, vui lòng đợi trong giây lát.",
-      );
+      _voiceInteractionProvider.speak('splash_checking_data'.tr);
 
       if (WidgetsBinding.instance.lifecycleState ==
           AppLifecycleState.detached) {
@@ -78,7 +79,7 @@ class SplashViewModel extends BaseModel {
         "lỗi trong quá trình khởi tạo: $e",
         name: "SplashViewModel.initializerApp",
       );
-      await _voiceInteractionProvider.speak("Có lỗi xảy ra: $e");
+      await _voiceInteractionProvider.speak('splash_error'.trParams({'error': e.toString()}));
       return;
     }
   }

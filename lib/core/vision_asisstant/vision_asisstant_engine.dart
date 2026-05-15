@@ -8,6 +8,7 @@ import 'package:build_access/models/history/history_model.dart';
 import 'package:build_access/models/scan/scan_result.dart';
 import 'package:build_access/providers/user_profile_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
+import 'package:get/get.dart';
 import 'dart:developer' as developer_log;
 
 class VisionAsisstantEngine {
@@ -25,7 +26,7 @@ class VisionAsisstantEngine {
     try {
       String userText = "";
       String textDetection = "";
-      String imageBase64 = "Không kèm ảnh";
+      String imageBase64 = 'no_image_attached'.tr;
       if (propType == AIType.OCR_SCAN || propType == AIType.DIRECT_VISION) {
         textDetection = scanResult!.textDetect ?? "";
         imageBase64 = scanResult.base64Image ?? "";
@@ -36,6 +37,10 @@ class VisionAsisstantEngine {
         if (latest != null) {
           textDetection = latest.aiSummary;
         }
+        developer_log.log(
+          "Voice Assistant: $latest",
+          name: "VisionAsisstantEngine",
+        );
       }
       String userProfile = jsonEncode(
         _userProfileProvider.userProfile!.toMap(),
@@ -60,8 +65,7 @@ class VisionAsisstantEngine {
           displayTitle =
               "${displayTitle.substring(0, 10)}..."; // Lấy 10 ký tự cho rõ nghĩa hơn
         } else if (displayTitle.isEmpty) {
-          displayTitle =
-              "Bản quét không tên"; // Phòng trường hợp AI không trả về gì
+          displayTitle = 'untitled_scan'.tr; // Phòng trường hợp AI không trả về gì
         }
         final HistoryModel historyModel = HistoryModel(
           directoryPath: scanResult!.directoryPath ?? "NONE",
@@ -84,8 +88,7 @@ class VisionAsisstantEngine {
         "Lỗi khi xử lý dữ liệu: $e",
         name: "VisionAsisstantEngine",
       );
-      return scanResult!.textDetect ??
-          "Hiện tại chưa xử lý được vui lòng thử lại!";
+      return scanResult!.textDetect ?? 'process_failed_retry'.tr;
     }
   }
 }

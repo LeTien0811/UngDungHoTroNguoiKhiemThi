@@ -7,6 +7,7 @@ import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
+import 'package:get/get.dart';
 import 'dart:developer' as developer_log;
 
 class PasskeyAuthService {
@@ -14,15 +15,34 @@ class PasskeyAuthService {
   final VoiceInteractionProvider _voice = getIt<VoiceInteractionProvider>();
   final APIService _apiService = getIt<APIService>();
 
+  Future<bool> checkStatusAccount(String email) async{
+    try {
+      final response = await _apiService.post(
+        AuthApiConfig.checkStatusAccountEndpoint,
+        data: {
+          'email': email,
+        },
+      );
+      if(response.statusCode == 200) {
+        return response.data['isRegistered'];
+      } else {
+        developer_log.log("lỗi ${response.statusCode}, ${response.statusMessage}");
+        return false;
+
+      }
+    } catch(e) {
+      developer_log.log("lỗi $e");
+      return false;
+    }
+  }
+
   Future<void> registerNewDeviceWithPasskey(
     User googleUser,
     String deviceName,
   ) async {
     try {
-      await _voice.speak(
-        "Đang chuẩn bị tạo khóa bảo mật. Vui lòng giữ mạng ổn định.",
-      );
-      final challengeResponse = await _apiService.postConfig(
+      await _voice.speak('auth_passkey_prep_create'.tr);
+      final challengeResponse = await _apiService.post(
         AuthApiConfig.generateChallengeRegEndpoint,
         data: jsonEncode({'uid': googleUser.uid, 'email': googleUser.email}),
       );
@@ -30,22 +50,20 @@ class PasskeyAuthService {
       developer_log.log("dữ liệu challenge ${jsonEncode(challengeResponse.data)}");
 
       if (challengeResponse.statusCode != 200) {
-        throw Exception("Lỗi nhận đề thi");
+        throw Exception('auth_passkey_error_challenge'.tr);
       }
 
       final optionsJson = challengeResponse.data;
 
-      await _voice.speak(
-        "Hãy đặt vân tay hoặc khuôn mặt vào cảm biến để tạo khóa.",
-      );
+      await _voice.speak('auth_passkey_prompt_fingerprint'.tr);
 
       final authenticator = PasskeyAuthenticator();
       final registerRequest = RegisterRequestType.fromJson(optionsJson as Map<String, dynamic>);
       final registrationResponse = await authenticator.register(registerRequest);
 
-      await _voice.speak("Đang lưu khóa vào máy chủ...");
+      await _voice.speak('auth_passkey_saving'.tr);
 
-      final verifyResponse = await _apiService.postConfig(
+      final verifyResponse = await _apiService.post(
         Uri.parse(AuthApiConfig.verifyRegResponseEndpoint).toString(),
         data: {
           'uid': googleUser.uid,
@@ -78,30 +96,28 @@ class PasskeyAuthService {
 
           await authStorage.saveUser(user);
         }
-        await _voice.speak(
-          "Thiết lập thành công. Bạn đã có thể sử dụng ứng dụng an toàn.",
-        );
+        await _voice.speak('auth_passkey_setup_success'.tr);
       } else {
-        throw Exception("Server từ chối khóa bảo mật.");
+        throw Exception('auth_passkey_server_rejected'.tr);
       }
     } catch (e) {
-      await _voice.speak("Lỗi thiết lập khóa. Vui lòng thử lại sau.");
+      await _voice.speak('auth_passkey_setup_error'.tr);
       rethrow;
     }
   }
 
   Future<void> loginWithPasskey(String email) async {
     try {
-      await _voice.speak("Đang kiểm tra thông tin. Vui lòng giữ máy.");
+      await _voice.speak('auth_passkey_checking_info'.tr);
 
       // 1. Xin đề thi Đăng nhập
-      final challengeResponse = await _apiService.postConfig(
+      final challengeResponse = await _apiService.post(
         AuthApiConfig.generateChallengeLogEndpoint,
         data: {'email': email},
       );
       final optionsJson = challengeResponse.data;
 
-      await _voice.speak("Hãy quét vân tay hoặc khuôn mặt để mở khóa.");
+      await _voice.speak('auth_passkey_prompt_unlock'.tr);
 
       // 2. Gọi Chip bảo mật để Ký (Assertion)
       final authenticator = PasskeyAuthenticator();
@@ -110,10 +126,10 @@ class PasskeyAuthService {
         authRequest,
       );
 
-      await _voice.speak("Đang xác minh chữ ký an toàn...");
+      await _voice.speak('auth_passkey_verifying'.tr);
 
       // 3. Nộp bài lên Backend chấm
-      final verifyResponse = await _apiService.postConfig(
+      final verifyResponse = await _apiService.post(
         AuthApiConfig.verifyLogResponseEndpoint,
         data: {
           'email': email,
@@ -144,11 +160,9 @@ class PasskeyAuthService {
         await authStorage.saveUser(user);
       }
 
-      await _voice.speak("Đăng nhập thành công. Chào mừng bạn trở lại.");
+      await _voice.speak('auth_login_success'.tr);
     } catch (e) {
-      await _voice.speak(
-        "Không thể đăng nhập. Có thể khóa của bạn đã bị xóa hoặc sai thiết bị.",
-      );
+      await _voice.speak('auth_login_failed'.tr);
       rethrow;
     }
   }

@@ -4,33 +4,16 @@ import 'package:dio/dio.dart';
 
 class APIService {
   late Dio _dio;
-  static const String _baseUrl = "https://s7bel7bigtop.shares.zrok.io/api/v1/ai";
+  static const String _baseUrl = "https://hotronguoikhiemthi-backend.shares.zrok.io/api/";
   APIService() {
     _dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 20),
         responseType: ResponseType.json,
       ),
     );
 
     _dio.interceptors.addAll([AuthInterceptor(), LoggingInterceptor()]);
-  }
-
-  Future<Response<T>> getConfig<T>(
-    String path, {
-    Map<String, dynamic>? query,
-  }) async {
-    return await _dio.get<T>(path, queryParameters: query);
-  }
-
-  Future<Response<T>> postConfig<T>(
-    String path, {
-    dynamic data,
-    Options? options,
-  }) async {
-    return await _dio.post<T>(path, data: data, options: options);
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? query}) async {

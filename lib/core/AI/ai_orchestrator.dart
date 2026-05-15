@@ -11,6 +11,7 @@ import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/services/AI_service/hardware_service.dart';
 import 'dart:developer' as developer_log;
+import 'package:get/get.dart';
 
 import 'package:build_access/services/AI_service/network_service.dart';
 
@@ -35,9 +36,7 @@ class AIOrchestrator {
 
     if (!hasNet && !canRunLocal) {
       developer_log.log('Thiết bị yếu & Không có mạng', name: 'AiOrchestrator');
-      await voiceProvider.speak(
-        "Không có kết nối mạng và thiết bị không hỗ trợ chế độ ngoại tuyến. Vui lòng kết nối Wifi hoặc 4G để tiếp tục.",
-      );
+      await voiceProvider.speak('ai_no_network_no_local'.tr);
       return;
     }
 
@@ -69,9 +68,7 @@ class AIOrchestrator {
       }
     } else {
       developer_log.log('Thiết bị yếu & Không có mạng', name: 'AiOrchestrator');
-      await getIt<VoiceInteractionProvider>().speak(
-        "Không có kết nối mạng và thiết bị không hỗ trợ chế độ ngoại tuyến. Vui lòng kết nối Wifi hoặc 4G để tiếp tục.",
-      );
+      await getIt<VoiceInteractionProvider>().speak('ai_no_network_no_local'.tr);
       return;
     }
   }
@@ -130,7 +127,7 @@ class AIOrchestrator {
           'Cloud AI thất bại, chuyển Fallback... $e',
           name: 'AiOrchestrator',
         );
-        yield "Đường truyền gián đoạn. Chờ một chút, hệ thống ngoại tuyến đang kích hoạt.\n";
+        yield 'ai_network_interrupted_fallback'.tr;
       }
     }
 
@@ -144,9 +141,7 @@ class AIOrchestrator {
 
         if (localProvider.status != AIStatus.ready ||
             localProvider.status != AIStatus.uninitialized) {
-          getIt<VoiceInteractionProvider>().speak(
-            "Đang khởi động AI vui lòng đợi chút",
-          );
+          getIt<VoiceInteractionProvider>().speak('ai_starting_please_wait'.tr);
           await initializer();
         }
 
@@ -161,11 +156,11 @@ class AIOrchestrator {
         );
         yield localResponse;
       } catch (e) {
-        yield "Hệ thống AI ngoại tuyến gặp sự cố. Vui lòng khởi động lại ứng dụng.";
+        yield 'ai_local_system_error'.tr;
       }
     } else {
       developer_log.log('Thiết bị yếu & Không có mạng', name: 'AiOrchestrator');
-      yield "Không có kết nối mạng và thiết bị không hỗ trợ chế độ ngoại tuyến. Vui lòng kết nối Wifi hoặc 4G để tiếp tục.";
+      yield 'ai_no_network_no_local'.tr;
     }
   }
 

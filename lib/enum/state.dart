@@ -12,7 +12,17 @@ enum SettingStatus { idle, processing, uninitialized, error }
 
 enum ErrorFrame { blur, recapture }
 
-enum AIType { VOICE_ASSISTANT, OCR_SCAN, GENERAL_CHAT, BUILD_EXTRACT_BASIC_PROFILE, DIRECT_VISION, error }
+enum AIType {
+  VOICE_ASSISTANT,
+  OCR_SCAN,
+  GENERAL_CHAT,
+  BUILD_EXTRACT_BASIC_PROFILE,
+  DIRECT_VISION,
+  PRODUCT_USAGE,
+  PRODUCT_SAFETY,
+  PRODUCT_DETAILS,
+  error,
+}
 
 enum IntentType {
   USAGE,
@@ -30,6 +40,9 @@ enum IntentType {
   // Pitch
   SETTING_PITCH_HIGH,
   SETTING_PITCH_LOW,
+
+  //open
+  OPEN_SETTINGS,
   //voice
   SETTING_VOICE_SOUTH,
   SETTING_VOICE_NORTH,

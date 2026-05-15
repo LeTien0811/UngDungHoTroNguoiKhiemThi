@@ -1,5 +1,6 @@
+import 'package:build_access/config/my_colors.dart';
 import 'package:build_access/view_models/setup_profile_view_model.dart';
-import 'package:build_access/widgets/button_action_micro_widget.dart';
+import 'package:build_access/core/widgets/button_action_micro_widget.dart';
 import 'package:flutter/material.dart';
 
 class Body extends StatefulWidget {
@@ -16,7 +17,7 @@ class _BodyState extends State<Body> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: const BoxDecoration(color: Color(0xFF050505)),
+      decoration: const BoxDecoration(color: MyColors.bgDark),
       child: Stack(
         children: [
           Positioned(
@@ -29,7 +30,7 @@ class _BodyState extends State<Body> {
                 const Text(
                   "THIẾT LẬP\nHỒ SƠ",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: MyColors.textWhite,
                     fontSize: 40,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2,
@@ -41,7 +42,7 @@ class _BodyState extends State<Body> {
                   width: 60,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4285F4),
+                    color: MyColors.primaryGold,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -49,7 +50,7 @@ class _BodyState extends State<Body> {
                 const Text(
                   "Ấn giữ vòng tròn bên dưới để giới thiệu về bạn: Họ tên, địa chỉ và tiền sử bệnh lý.",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: MyColors.textGrey,
                     fontSize: 16,
                     height: 1.5,
                   ),
@@ -75,8 +76,8 @@ class _BodyState extends State<Body> {
                       : "AI đang xử lý...",
                   style: TextStyle(
                     color: widget.model.isAiProcessing
-                        ? const Color(0xFF00C853)
-                        : const Color(0xFF4285F4),
+                        ? MyColors.successGreen
+                        : MyColors.primaryGold,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

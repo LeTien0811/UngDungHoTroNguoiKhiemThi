@@ -1,3 +1,4 @@
+import 'package:build_access/models/history/history_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -55,6 +56,15 @@ class DatabaseHelper {
   ) async {
     final db = await database;
     return await db.query(Key, orderBy: orderBy, limit: limit, offset: offset);
+  }
+
+  Future<void> deleteCurrent(HistoryModel item) async {
+    final db = await database;
+    await db.delete(
+      'scan_history',
+      where: 'created_time = ? AND title = ?',
+      whereArgs: [item.createdTime.toIso8601String(), item.title],
+    );
   }
 
   Future<int> deleteOld(String key, int daysToKeep) async {

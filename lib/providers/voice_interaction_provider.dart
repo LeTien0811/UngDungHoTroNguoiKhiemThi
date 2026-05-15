@@ -57,7 +57,7 @@ class VoiceInteractionProvider extends BaseModel {
   Future<void> speak(String text) async {
     _audioFeedbackService.stopProcessingSound();
     _completeTts();
-
+    developer_log.log("đọc ${text}", name: "void debug");
     recognizedText = "";
     _ttsCompleter = Completer<void>();
 

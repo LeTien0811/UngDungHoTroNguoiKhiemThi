@@ -1,4 +1,4 @@
-import 'package:build_access/constant/color.dart';
+import 'package:build_access/config/my_colors.dart';
 import 'package:flutter/material.dart';
 
 class DerectorText extends StatelessWidget {
@@ -19,13 +19,13 @@ class DerectorText extends StatelessWidget {
         Text(
           text,
           style: const TextStyle(
-            color: MyColors.actionCyan,
+            color: MyColors.primaryGold,
             fontSize: 24,
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
           ),
         ),
-        Icon(icon, size: 60, color: MyColors.actionCyan),
+        Icon(icon, size: 60, color: MyColors.primaryGold),
       ],
     );
   }

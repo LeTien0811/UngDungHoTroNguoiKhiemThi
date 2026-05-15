@@ -1,3 +1,4 @@
+import 'package:build_access/config/my_colors.dart';
 import 'package:build_access/view_models/onboarding_view_model.dart';
 import 'package:flutter/material.dart';
 
@@ -19,10 +20,10 @@ class _BodyState extends State<Body> {
       child: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(color: Color(0xFF050505)),
+        decoration: const BoxDecoration(color: MyColors.bgDark),
         child: widget.model.isAiProcessing
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF4285F4)),
+                child: CircularProgressIndicator(color: MyColors.primaryGold),
               )
             : SafeArea(
                 child: Padding(
@@ -39,13 +40,13 @@ class _BodyState extends State<Body> {
                             ? Icons.remove_red_eye_rounded
                             : Icons.fingerprint_rounded,
                         size: 120,
-                        color: const Color(0xFF4285F4),
+                        color: MyColors.primaryGold,
                       ),
                       const SizedBox(height: 40),
                       Text(
                         widget.model.step == 0 ? "BUILD ACCESS" : "BẢO MẬT",
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: MyColors.textWhite,
                           fontSize: 36,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
@@ -57,7 +58,7 @@ class _BodyState extends State<Body> {
                         width: 60,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4285F4),
+                          color: MyColors.primaryGold,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -67,7 +68,7 @@ class _BodyState extends State<Body> {
                             ? "Trợ lý thị giác thông minh.\nSử dụng AI để nhận diện không gian xung quanh bạn."
                             : "Công nghệ Passkey an toàn.\nLiên kết Google để đồng bộ dữ liệu.",
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: MyColors.textGrey,
                           fontSize: 18,
                           height: 1.5,
                         ),
@@ -80,22 +81,22 @@ class _BodyState extends State<Body> {
                           horizontal: 24,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4285F4).withOpacity(0.1),
+                          color: MyColors.primaryGold.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF4285F4).withOpacity(0.5),
+                            color: MyColors.primaryGold.withOpacity(0.5),
                           ),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.touch_app, color: Color(0xFF4285F4)),
+                            Icon(Icons.touch_app, color: MyColors.primaryGold),
                             SizedBox(width: 12),
                             const Expanded(
                               child: Text(
                                 "Chạm hai lần để tiếp tục",
                                 style: TextStyle(
-                                  color: Color(0xFF4285F4),
+                                  color: MyColors.primaryGold,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),

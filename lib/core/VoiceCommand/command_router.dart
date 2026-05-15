@@ -4,10 +4,11 @@ import 'package:build_access/core/history/history_engine.dart';
 import 'package:build_access/core/setting/setting_orchestrator.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
+import 'package:build_access/features/history_feature/history_feature.dart';
 import 'package:build_access/models/history/history_model.dart';
 import 'package:build_access/providers/user_profile_provider.dart';
 import 'dart:developer' as developer_log;
-
+import 'package:get/get.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 
 class CommandRouter {
@@ -20,14 +21,12 @@ class CommandRouter {
     return (command.contains("SETTING")) ? true : false;
   }
 
-
   Future<bool> runAI({required AIType type, required String userChat}) async {
     try {
       final latest = await _historyEngine.getLatestHistory();
 
-      // Nếu là Assistant mà chưa có lịch sử, nhắc người dùng quét trước
       if (type == AIType.VOICE_ASSISTANT && latest == null) {
-        await _voice.speak("Vui lòng quét sản phẩm trước khi đặt câu hỏi hỗ trợ.");
+        await _voice.speak('voice_require_scan_first'.tr);
         return false;
       }
       final Stream<String> aiStream = _aiEngine.executeAiTask(
@@ -74,17 +73,38 @@ class CommandRouter {
       bool isSetting = settingCheck(intentType);
       if (isSetting) {
         await _settingOrchestrator.process(intentType);
-        await _voice.speak("Đã áp dụng cài đặt thành công!");
+        await _voice.speak('setting_success'.tr);
         return;
       }
 
       switch (intentType) {
         case IntentType.USAGE:
-          break;
+          try {
+            await runAI(type: AIType.PRODUCT_USAGE, userChat: userChat);
+            return;
+          } catch (e) {
+            developer_log.log('có lỗi xảy ra: $e', name: "CommandRouter");
+            await _voice.speak('voice_error_timeout'.tr);
+            return;
+          }
         case IntentType.SAFETY:
-          break;
+          try {
+            await runAI(type: AIType.PRODUCT_SAFETY, userChat: userChat);
+            return;
+          } catch (e) {
+            developer_log.log('có lỗi xảy ra: $e', name: "CommandRouter");
+            await _voice.speak('voice_error_timeout'.tr);
+            return;
+          }
         case IntentType.DETAILS:
-          break;
+          try {
+            await runAI(type: AIType.PRODUCT_DETAILS, userChat: userChat);
+            return;
+          } catch (e) {
+            developer_log.log('có lỗi xảy ra: $e', name: "CommandRouter");
+            await _voice.speak('voice_error_timeout'.tr);
+            return;
+          }
         case IntentType.REPEAT:
           List<HistoryModel> model = await _historyEngine.readScan(
             limitProps: 1,
@@ -93,14 +113,32 @@ class CommandRouter {
           await _voice.speak(model.first.aiSummary);
           break;
         case IntentType.HISTORY:
-          break;
+          try {
+            await _voice.speak('confirm_open_history'.tr);
+            Get.toNamed(HistoryFeature.routerName);
+            return;
+          } catch(e) {
+            developer_log.log('có lỗi xảy ra: $e', name: "CommandRouter");
+            await _voice.speak('voice_error_timeout'.tr);
+            return;
+          }
         case IntentType.CANCEL:
           return;
         case IntentType.GENERAL:
+          try {
+            await runAI(type: AIType.GENERAL_CHAT, userChat: userChat);
+            return;
+          } catch (e) {
+            developer_log.log('có lỗi xảy ra: $e', name: "CommandRouter");
+            await _voice.speak('voice_error_timeout'.tr);
+            return;
+          }
           break;
         case IntentType.UNKNOWN:
+          await _voice.speak('voice_not_understood'.tr);
           return;
         case IntentType.ERROR:
+          await _voice.speak('voice_error_timeout'.tr);
           return;
         default:
           return;

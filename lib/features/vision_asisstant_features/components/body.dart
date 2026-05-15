@@ -1,12 +1,16 @@
 import 'dart:ui';
+import 'package:build_access/config/my_colors.dart';
+import 'package:build_access/core/speech/speech_to_text/speech_to_text_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/core/navigator/app_navigator.dart';
+import 'package:build_access/core/widgets/button_action_micro_widget.dart';
 import 'package:build_access/features/camera_feature/camera_features.dart';
 import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/features/vision_asisstant_features/components/organic_glow_painter.dart';
 import 'package:build_access/view_models/vision_assistant_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class Body extends StatefulWidget {
   final VisionAssistantViewModel model;
@@ -32,7 +36,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
 
   void _onViewModelChange() {
     if (!widget.model.voiceInteractionProvider.isSpeaking) {
-       _waveController.stop();
+      _waveController.stop();
     } else {
       if (!_waveController.isAnimating) _waveController.repeat();
     }
@@ -41,20 +45,17 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
 
   void _handleExitToScan() {
     HapticFeedback.mediumImpact();
-    widget.model.dispose();
-    getIt<AppNavigator>().pushNamedAndRemoveUntil(
-      CameraFeatures.routerName,
-    );
+    getIt<AppNavigator>().pushNamedAndRemoveUntil(CameraFeatures.routerName);
   }
 
   void _handleExitToHome() {
     HapticFeedback.heavyImpact();
-    widget.model.dispose();
     getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
   }
 
   @override
   void dispose() {
+    _waveController.stop();
     widget.model.removeListener(_onViewModelChange);
     _waveController.dispose();
     super.dispose();
@@ -69,7 +70,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
         _handleExitToScan();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF050505), // Đen sâu thẳm
+        backgroundColor: MyColors.bgDark, // Đen sâu thẳm
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onForcePressEnd: (_) => _handleExitToScan(),
@@ -87,11 +88,17 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       radius: 1.5,
                       colors: [
                         const Color(0xFF1A1F38),
-                        const Color(0xFF050505),
+                        MyColors.bgDark,
                       ],
                     ),
                   ),
                 ),
+              ),
+
+              ButtonActionMicroWidget(
+                onLongPressedStart: () =>
+                    getIt<SpeechToTextEngine>().startWalkieTalkie(),
+                onLongPressedEnd: () => widget.model.processAskAI(),
               ),
 
               // 2. Hệ thống sóng âm Google Assistant ở dưới đáy
@@ -135,8 +142,8 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       Icon(
                         Icons.auto_awesome,
                         color: widget.model.voiceInteractionProvider.isSpeaking
-                            ? const Color(0xFF4285F4)
-                            : Colors.grey,
+                            ? MyColors.primaryGold
+                            : MyColors.textGrey,
                         size: 30,
                       ),
                       const SizedBox(height: 20),
@@ -145,11 +152,11 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                           physics: const BouncingScrollPhysics(),
                           child: Text(
                             widget.model.fullResponse.isEmpty
-                                ? "Đang lắng nghe dữ liệu..."
+                                ? "vision_reading_image".tr
                                 : widget.model.fullResponse,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: MyColors.textWhite.withValues(alpha: 0.5),
                               fontSize: 28,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.5,
@@ -181,11 +188,11 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     width: 10,
                     height: 10,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF4285F4),
+                      color: MyColors.primaryGold,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0xFF4285F4),
+                          color: MyColors.primaryGold,
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),

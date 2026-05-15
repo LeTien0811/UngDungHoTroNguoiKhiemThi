@@ -11,6 +11,7 @@ import 'package:build_access/providers/user_profile_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/services/storage/secure_storage_service.dart';
 import 'dart:developer' as developer_log;
+import 'package:get/get.dart';
 
 class UserProfileEngine {
   final SecureStorageService _secureStorage = getIt<SecureStorageService>();
@@ -40,9 +41,7 @@ class UserProfileEngine {
   }
 
   Future<void> speakInstruction() async {
-    await _voice.speak(
-      "Nhấn giữ vòng tròn trên màn hình để nói, thả tay ra khi bạn đã nói xong.",
-    );
+    await _voice.speak('onboarding_hold_to_talk'.tr);
   }
 
   void startWalkieTalkie() {
@@ -56,7 +55,7 @@ class UserProfileEngine {
       String userVoice = await _speechToTextEngine.stopWalkieTalkie();
 
       if (userVoice.trim().isEmpty) {
-        await _voice.speak("Tôi chưa nghe rõ, vui lòng nhấn giữ và thử lại.");
+        await _voice.speak('voice_not_heard_clear'.tr);
         developer_log.log("User Voice Rỗng", name: "UserProfileEngine");
         return false;
       }
@@ -66,7 +65,7 @@ class UserProfileEngine {
         name: "UserProfileEngine.getUserProfile",
       );
 
-      await _voice.speak("Đang phân tích dữ liệu, vui lòng đợi...");
+      await _voice.speak('onboarding_analyzing'.tr);
 
       final Stream<String> aiStream = _aiEngine.executeAiTask(
         type: AIType.BUILD_EXTRACT_BASIC_PROFILE,
@@ -100,7 +99,7 @@ class UserProfileEngine {
       await _secureStorage.saveData(_key, cleanJsonString);
       _provider.setUserProfile(userFinal);
 
-      await _voice.speak("Thiết lập thành công. Xin chào ${userFinal.name}.");
+      await _voice.speak('onboarding_setup_success'.trParams({'name': userFinal.name}));
 
       getIt<AppNavigator>().pushNamedAndRemoveUntil(HomeFeatures.routerName);
 

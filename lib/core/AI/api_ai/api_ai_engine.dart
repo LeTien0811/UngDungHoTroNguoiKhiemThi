@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:build_access/core/setting/engine/app_setting_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/AI/api_ai_provider.dart';
 import 'package:build_access/services/API_service/api_service.dart';
@@ -25,15 +26,18 @@ class APIAIEngine {
       final String userProfile =
           await _storage.readData('user_medical_profile') ?? "";
 
+      String language = getIt<AppSettingEngine>().settingProvider.appSetting.ttsLanguage;
+
       Response<ResponseBody> response = await _apiService.post(
-        '/stream',
+        'ai/stream',
         data: {
           "type": type,
           "data": data,
           "userText": userText ?? "",
           "userProfile": userProfile,
           "history": history ?? "",
-          "imageBase64": imageBase64 ?? ""
+          "imageBase64": imageBase64 ?? "",
+          "language": language,
         },
         options: Options(responseType: ResponseType.stream),
       );

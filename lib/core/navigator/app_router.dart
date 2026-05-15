@@ -8,6 +8,8 @@ import 'package:build_access/features/home_feature/home_features.dart';
 import 'package:build_access/features/onboarding_features/onboarding_feature.dart';
 import 'package:build_access/features/splash_feature/splash_feature.dart';
 import 'package:build_access/features/vision_asisstant_features/vision_asisstant_feature.dart';
+import 'package:build_access/features/history_feature/history_feature.dart';
+import 'package:build_access/core/navigator/binding/history_binding.dart';
 import 'package:get/get.dart';
 
 class AppRouter {
@@ -16,6 +18,7 @@ class AppRouter {
   static const String home = '/home';
   static const String camera = '/camera';
   static const String visionAssistant = '/vision_assistant';
+  static const String history = '/history';
 
   static final routes = [
     GetPage(
@@ -42,6 +45,11 @@ class AppRouter {
       name: visionAssistant,
       page: () => const VisionAsisstantFeature(),
       binding: VisionAssistantBinding()
+    ),
+    GetPage(
+      name: history,
+      page: () => const HistoryFeature(),
+      binding: HistoryBinding()
     ),
   ];
 }

@@ -60,18 +60,40 @@ class TextToSpeechService {
   Future<void> applyHardwareSettings(AppSettingsModel settings) async {
     try {
       await _flutterTts.setSpeechRate(settings.ttsSpeech);
-
       await _flutterTts.setPitch(settings.ttsPitch);
+      await _flutterTts.setLanguage(settings.ttsLanguage);
 
-      if (settings.ttsVoiceId.isNotEmpty) {
+      final List<dynamic> voices = await _flutterTts.getVoices ?? [];
+      final bestVoice = await GetBestVoice.getVoice(
+        voices: voices,
+        language: settings.ttsLanguage,
+        genderPreference: settings.ttsGenderPreference,
+      );
+
+      if (bestVoice != null) {
+        await _flutterTts.setVoice({
+          "name": bestVoice['name'],
+          "locale": bestVoice['locale'],
+        });
+        developer_log.log(
+          "cập nhật cấu hình voice id tự động",
+          name: "VoiceProvider",
+        );
+      } else if (settings.ttsVoiceId.isNotEmpty) {
         await _flutterTts.setVoice({
           "name": settings.ttsVoiceId,
           "locale": settings.ttsLanguage,
         });
+        developer_log.log("cập nhật cấu hình voice id", name: "VoiceProvider");
       }
+
+      developer_log.log("cập nhật cấu hình thành công", name: "VoiceProvider");
       return;
     } catch (e) {
-      developer_log.log("Không thể cập nhật cấu hình loa: $e", name: "VoiceProvider");
+      developer_log.log(
+        "Không thể cập nhật cấu hình loa: $e",
+        name: "VoiceProvider",
+      );
     }
   }
 
@@ -82,7 +104,7 @@ class TextToSpeechService {
     }
   }
 
-  Future<void> speak(String text) async{
+  Future<void> speak(String text) async {
     final now = DateTime.now();
     if (text == _lastSpokenText &&
         now.difference(_lastSpokenTime).inSeconds < 3) {

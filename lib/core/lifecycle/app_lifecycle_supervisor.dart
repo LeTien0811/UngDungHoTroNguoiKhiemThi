@@ -1,4 +1,3 @@
-import 'package:build_access/core/VoiceCommand/IntentClassifier/intent_classifier_engine.dart';
 import 'package:build_access/core/AI/local_ai/local_ai_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';

@@ -12,6 +12,7 @@ import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 import 'package:build_access/services/hardware/haptic_hardware_service.dart';
 import 'package:camera/camera.dart';
+import 'package:get/get.dart';
 
 class CameraViewModel extends BaseModel {
   final VisionStreamCoordinator _visionStream =
@@ -24,12 +25,10 @@ class CameraViewModel extends BaseModel {
 
   Future<void> initCamera() async {
     await runSafe(() async {
-      voiceInteractionProvider.speak(
-        'Bắt đầu tạo camera và lấy nét vật thể vui lòng đưa máy đối diện vật muốn và chờ trong giây lát',
-      );
+      voiceInteractionProvider.speak('camera_start_focus'.tr);
       bool isPrepare = await _visionStream.initCamera();
       if (!isPrepare) {
-        voiceInteractionProvider.speak('Khởi tạo camera thất bại');
+        voiceInteractionProvider.speak('camera_init_failed'.tr);
         return;
       }
 

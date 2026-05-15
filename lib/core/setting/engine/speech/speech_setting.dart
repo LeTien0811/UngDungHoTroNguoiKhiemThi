@@ -3,6 +3,8 @@ import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/models/setting/app_setting_model.dart';
 import 'package:build_access/services/voice_interaction/text_to_speech_service.dart';
+import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import 'dart:developer' as developer_log;
 
 class SpeechSetting {
@@ -77,12 +79,14 @@ class SpeechSetting {
         case IntentType.SETTING_LANG_VI:
           if (newModel.ttsLanguage != ttsLangRate[intentType]) {
             newModel = newModel.copyWith(ttsLanguage: ttsLangRate[intentType]);
+            Get.updateLocale(const Locale('vi', 'VN'));
             isChange = true;
           }
           break;
         case IntentType.SETTING_LANG_EN:
           if (newModel.ttsLanguage != ttsLangRate[intentType]) {
             newModel = newModel.copyWith(ttsLanguage: ttsLangRate[intentType]);
+            Get.updateLocale(const Locale('en', 'US'));
             isChange = true;
           }
           break;
@@ -109,6 +113,7 @@ class SpeechSetting {
       if (isChange) {
         await getIt<TextToSpeechService>().applyHardwareSettings(newModel);
         await _appSettingEngine.saveSettings(newModel);
+        isChange = false;
         return true;
       }
       return false;
