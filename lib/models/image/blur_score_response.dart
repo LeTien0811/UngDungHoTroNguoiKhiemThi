@@ -1,7 +1,9 @@
 class BlurScoreResponse {
-  final double blurScore;
+  final double variance;
+  final double avgBrightness;
 
   BlurScoreResponse({
-    required this.blurScore,
+    required this.variance,
+    required this.avgBrightness,
   });
 }

@@ -6,15 +6,6 @@ import 'package:build_access/models/image/blur_score_params.dart';
 import 'package:build_access/models/image/blur_score_response.dart';
 
 class BlurAlgrothm {
-  int getBlurredPixel(Uint8List bytes, int idx, int stride) {
-    return (bytes[idx] +
-            bytes[idx - 1] +
-            bytes[idx + 1] +
-            bytes[idx - stride] +
-            bytes[idx + stride]) ~/
-        5;
-  }
-
   void computeLaplacianVariance(WorkerInit<void> init) {
     final receivePort = ReceivePort();
     init.sendPort.send(receivePort.sendPort);
@@ -25,49 +16,79 @@ class BlurAlgrothm {
       }
       if (message is WorkerTask<BlurScoreParams>) {
         try {
-          final Uint8List bytes = message.bytes;
-          final int stride = message.stride;
-          final int physicalHeight = bytes.length ~/ stride;
+          final Uint8List bytes = message.data.bytes;
+          final int stride = message.data.stride;
+          final int width = message.data.width;
+          final int height = message.data.height;
 
-          final int startY = physicalHeight ~/ 4;
-          final int endY = physicalHeight * 3 ~/ 4;
-          final int startX = stride ~/ 4;
-          final int endX = stride * 3 ~/ 4;
+          final int startY = height ~/ 4;
+          final int endY = height * 3 ~/ 4;
+          final int startX = width ~/ 4;
+          final int endX = width * 3 ~/ 4;
 
           double sum = 0;
           double sumSq = 0;
           int count = 0;
+          int sumBrightness = 0;
 
-          final int safePadding = stride * 2 + 2;
+          // tránh out-of-bounds
+          final int safeStartY = startY < 2 ? 2 : startY;
+          final int safeEndY = endY > height - 2 ? height - 2 : endY;
 
-          for (int y = startY; y < endY; y += 4) {
-            for (int x = startX; x < endX; x += 4) {
-              int index = y * stride + x;
+          final int safeStartX = startX < 2 ? 2 : startX;
+          final int safeEndX = endX > width - 2 ? width - 2 : endX;
 
-              if (index - safePadding < 0 ||
-                  index + safePadding >= bytes.length) {
-                continue;
-              }
+          for (int y = safeStartY; y < safeEndY; y += 4) {
+            final int row = y * stride;
 
-              int center = getBlurredPixel(bytes, index, stride);
-              int up = getBlurredPixel(bytes, index - stride * 2, stride);
-              int down = getBlurredPixel(bytes, index + stride * 2, stride);
-              int left = getBlurredPixel(bytes, index - 2, stride);
-              int right = getBlurredPixel(bytes, index + 2, stride);
+            for (int x = safeStartX; x < safeEndX; x += 4) {
+              final int idx = row + x;
+
+              int center =
+                  (bytes[idx] +
+                      bytes[idx - 1] +
+                      bytes[idx + 1] +
+                      bytes[idx - stride] +
+                      bytes[idx + stride]) ~/
+                  5;
+              final int up =
+                  (bytes[idx - (stride * 2)] +
+                      bytes[idx - (stride * 2) - 1] +
+                      bytes[idx - (stride * 2) + 1]) ~/
+                      3;
+
+              final int down =
+                  (bytes[idx + (stride * 2)] +
+                      bytes[idx + (stride * 2) - 1] +
+                      bytes[idx + (stride * 2) + 1]) ~/
+                      3;
+
+
+              final int left = bytes[idx - 2];
+              final int right = bytes[idx + 2];
+
 
               int laplacian = up + down + left + right - (4 * center);
 
               sum += laplacian;
               sumSq += laplacian * laplacian;
+              sumBrightness += center;
               count++;
             }
           }
 
-          if (count == 0) return 0.0;
+          double variance = 0.0;
+          double avgBrightness = 0.0;
 
-          double mean = sum / count;
-          double variance = (sumSq / count) - (mean * mean);
-          message.responsePort.send(BlurScoreResponse(blurScore: variance));
+          if (count > 0) {
+            final double mean = sum / count;
+
+            variance = (sumSq / count) - (mean * mean);
+
+            avgBrightness = sumBrightness / count;
+          }
+
+          message.replyPort.send(BlurScoreResponse(variance: variance, avgBrightness: avgBrightness));
         } catch (e) {
           developer_log.log("Lỗi Ải 1 (BlurChecker): $e");
           rethrow;
