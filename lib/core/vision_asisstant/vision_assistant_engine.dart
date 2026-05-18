@@ -27,7 +27,7 @@ class VisionAssistantEngine {
       String userRequest = visionAssistantInput.userRequest ?? "";
       String productInfo = visionAssistantInput.productInfo ?? "";
       String imageBase64 =
-          visionAssistantInput.imageBase64 ?? 'no_image_attached'.tr;
+          visionAssistantInput.imageBase64 ?? "no_image_attached".tr;
       String language = _appSettingProvider.appSetting.ttsLanguage;
 
       if (propType == AIType.VOICE_ASSISTANT) {
