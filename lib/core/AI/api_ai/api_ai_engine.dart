@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:build_access/core/setting/engine/app_setting_engine.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/models/vision_assistant/vision_assistant_request.dart';
 import 'package:build_access/providers/AI/api_ai_provider.dart';
 import 'package:build_access/services/API_service/api_service.dart';
 import 'package:build_access/services/storage/secure_storage_service.dart';
@@ -13,12 +14,7 @@ class APIAIEngine {
   final SecureStorageService _storage = getIt<SecureStorageService>();
 
   Stream<String> streamAIResponse({
-    required String type,
-    required String data,
-    String? userText,
-    String? userProfile,
-    String? history,
-    String? imageBase64
+    required VisionAssistantRequest visionAssistantRequest,
   }) async* {
     try {
       provider.setProcessing();
@@ -31,12 +27,12 @@ class APIAIEngine {
       Response<ResponseBody> response = await _apiService.post(
         'ai/stream',
         data: {
-          "type": type,
-          "data": data,
-          "userText": userText ?? "",
+          "type": visionAssistantRequest.type.name,
+          "productInfo": visionAssistantRequest.productInfo,
+          "userRequest": visionAssistantRequest.userRequest,
           "userProfile": userProfile,
-          "history": history ?? "",
-          "imageBase64": imageBase64 ?? "",
+          "history": visionAssistantRequest.history ?? "",
+          "imageBase64": visionAssistantRequest.imageBase64 ?? "",
           "language": language,
         },
         options: Options(responseType: ResponseType.stream),

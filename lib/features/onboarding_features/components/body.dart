@@ -44,7 +44,8 @@ class _BodyState extends State<Body> {
                       ),
                       const SizedBox(height: 40),
                       Text(
-                        widget.model.step == 0 ? "BUILD ACCESS" : "BẢO MẬT",
+                        widget.model.step == 0 ? "Ứng Dụng Hỗ Trợ Đọc Thông Tin Sản Phẩm" : "BẢO MẬT",
+
                         style: const TextStyle(
                           color: MyColors.textWhite,
                           fontSize: 36,

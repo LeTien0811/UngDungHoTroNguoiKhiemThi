@@ -56,6 +56,7 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
 
           Center(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // LOGO AI & Hiệu ứng Pulse
@@ -84,29 +85,42 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 40),
 
                 // Tên ứng dụng với Gradient
+                // Tên ứng dụng với Gradient
                 ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
                     colors: [MyColors.primaryGold, MyColors.textWhite],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ).createShader(bounds),
-                  child: const Text(
-                    "BUILD ACCESS",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: MyColors.textWhite,
-                      letterSpacing: 4,
+                  child: const Padding(
+                    // Thêm padding bên trái bằng đúng letterSpacing (4) để bù lại độ lệch
+                    padding: EdgeInsets.only(left: 4),
+                    child: Text(
+                      "ỨNG DỤNG HỖ TRỢ\nĐỌC THÔNG TIN SẢN PHẨM", // Tui thêm \n để chủ động xuống hàng cho đẹp
+                      textAlign: TextAlign
+                          .center, // ✅ QUAN TRỌNG NHẤT: Căn giữa nội dung các dòng chữ
+                      style: TextStyle(
+                        fontSize:
+                            28, // Hạ xuống 28 một chút để không bị tràn viền trên máy màn hình nhỏ
+                        fontWeight: FontWeight.w900,
+                        color: MyColors.textWhite,
+                        letterSpacing: 4,
+                        height: 1.2, // Khoảng cách giữa các dòng cho thoáng
+                      ),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 10),
+
                 Text(
                   "AI ASSISTANT FOR THE BLIND",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: MyColors.textWhite.withValues(alpha: 0.5),
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 2,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 3,
                   ),
                 ),
               ],

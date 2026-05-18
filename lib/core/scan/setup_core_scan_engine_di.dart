@@ -1,7 +1,6 @@
 import 'package:build_access/core/scan/analyzer/spatial_text_analyzer.dart';
 import 'package:build_access/core/scan/engine/object_detection_engine.dart';
 import 'package:build_access/core/scan/engine/scan_text_engine.dart';
-import 'package:build_access/core/scan/enhancer/scan_text_ai_enhancer.dart';
 import 'package:build_access/core/scan/pipeline/ocr_preprocessor.dart';
 import 'package:build_access/core/scan/pipeline/scan_quality_manager.dart';
 import 'package:build_access/core/scan/scan_orchestrator.dart';
@@ -20,7 +19,6 @@ class SetupCoreScanEngineDI {
       () => ScanTextEngine(),
       dispose: (param) => param.dispose(),
     );
-    getIt.registerLazySingleton<ScanTextAiEnhancer>(() => ScanTextAiEnhancer());
     getIt.registerLazySingleton<OcrPreprocessor>(
       () => OcrPreprocessor(),
       dispose: (param) => param.dispose(),

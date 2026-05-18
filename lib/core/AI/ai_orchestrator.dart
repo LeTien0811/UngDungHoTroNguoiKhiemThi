@@ -6,6 +6,8 @@ import 'package:build_access/core/AI/local_ai/model_downloader_service.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/enum/ai_form_factory.dart';
+import 'package:build_access/models/vision_assistant/vision_assistant_input.dart';
+import 'package:build_access/models/vision_assistant/vision_assistant_request.dart';
 import 'package:build_access/providers/AI/api_ai_provider.dart';
 import 'package:build_access/providers/AI/local_ai_provider.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
@@ -68,19 +70,16 @@ class AIOrchestrator {
       }
     } else {
       developer_log.log('Thiết bị yếu & Không có mạng', name: 'AiOrchestrator');
-      await getIt<VoiceInteractionProvider>().speak('ai_no_network_no_local'.tr);
+      await getIt<VoiceInteractionProvider>().speak(
+        'ai_no_network_no_local'.tr,
+      );
       return;
     }
   }
 
   Stream<String> executeAiTask({
-    required AIType type,
-    required String data,
     bool isStream = true,
-    String? userText,
-    String? userProfile,
-    String? history,
-    String? imageBase64
+    required VisionAssistantRequest visionAssistantRequest,
   }) async* {
     final bool currentNetworkStatus = await networkService.hasRealInternet();
     if (currentNetworkStatus) {
@@ -95,20 +94,14 @@ class AIOrchestrator {
             cloudProvider.status != AIStatus.uninitialized) {
           cloudProvider.setReady(true);
         }
-
-        final rawStream =  cloudEngine.streamAIResponse(
-          type: type.name,
-          data: data,
-          history: history,
-          userProfile: userProfile,
-          userText: userText,
-          imageBase64: imageBase64,
+        final rawStream = cloudEngine.streamAIResponse(
+          visionAssistantRequest: visionAssistantRequest,
         );
-        
+
         yield* rawStream.map((chunk) {
           try {
             final Map<String, dynamic> chunkMap = jsonDecode(chunk);
-            if(chunkMap.containsKey('text')) {
+            if (chunkMap.containsKey('text')) {
               return chunkMap['text'];
             }
             return chunk;
@@ -117,7 +110,7 @@ class AIOrchestrator {
               'có lỗi ở catch chỗ lọc chunk: $e',
               name: 'AiOrchestrator',
             );
-              return chunk;
+            return chunk;
           }
         });
 
@@ -146,8 +139,8 @@ class AIOrchestrator {
         }
 
         String finalLocalPrompt = AiPromptFactory.generateLocalPrompt(
-          type,
-          data,
+          visionAssistantRequest.type,
+          visionAssistantRequest.userRequest ?? '',
           "",
         );
 

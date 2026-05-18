@@ -86,19 +86,10 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                     gradient: RadialGradient(
                       center: Alignment.center,
                       radius: 1.5,
-                      colors: [
-                        const Color(0xFF1A1F38),
-                        MyColors.bgDark,
-                      ],
+                      colors: [const Color(0xFF1A1F38), MyColors.bgDark],
                     ),
                   ),
                 ),
-              ),
-
-              ButtonActionMicroWidget(
-                onLongPressedStart: () =>
-                    getIt<SpeechToTextEngine>().startWalkieTalkie(),
-                onLongPressedEnd: () => widget.model.processAskAI(),
               ),
 
               // 2. Hệ thống sóng âm Google Assistant ở dưới đáy
@@ -151,9 +142,10 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
                           child: Text(
-                            widget.model.fullResponse.isEmpty
+                            (widget.model.result.trim().isEmpty)
                                 ? "vision_reading_image".tr
-                                : widget.model.fullResponse,
+                                : widget
+                                      .model.result,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: MyColors.textWhite.withValues(alpha: 0.5),
@@ -175,6 +167,19 @@ class _BodyState extends State<Body> with SingleTickerProviderStateMixin {
                       ),
                       const SizedBox(height: 150), // Chừa chỗ cho sóng âm
                     ],
+                  ),
+                ),
+              ),
+
+              Positioned(
+                bottom: 50,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ButtonActionMicroWidget(
+                    onLongPressedStart: () =>
+                        getIt<SpeechToTextEngine>().startWalkieTalkie(),
+                    onLongPressedEnd: () => widget.model.stopUserAsking(),
                   ),
                 ),
               ),

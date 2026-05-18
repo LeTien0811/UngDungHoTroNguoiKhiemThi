@@ -16,8 +16,4 @@ class SetupProfileViewModel extends BaseModel {
     _engine.startWalkieTalkie();
   }
 
-  Future<bool> stopRecordingAndProcess() async {
-    await Future.delayed(const Duration(seconds: 2));
-    return await _engine.stopWalkieTalkieAndProcessAI();
-  }
 }

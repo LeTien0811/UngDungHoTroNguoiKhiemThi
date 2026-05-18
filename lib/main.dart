@@ -32,7 +32,6 @@ class HoTroNguoiKhiemThiApp extends StatelessWidget {
   const HoTroNguoiKhiemThiApp({super.key});
   @override
   Widget build(BuildContext context) {
-    // Lấy ngôn ngữ từ AppSettingProvider
     final appSetting = getIt<AppSettingProvider>().appSetting;
     final localeParts = appSetting.ttsLanguage.split('-');
     final locale = localeParts.length == 2

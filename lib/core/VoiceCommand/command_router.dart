@@ -1,19 +1,18 @@
-import 'dart:convert';
-import 'package:build_access/core/AI/ai_orchestrator.dart';
 import 'package:build_access/core/history/history_engine.dart';
 import 'package:build_access/core/setting/setting_orchestrator.dart';
 import 'package:build_access/core/utils/dependency_injection.dart';
+import 'package:build_access/core/vision_asisstant/vision_assistant_engine.dart';
 import 'package:build_access/enum/state.dart';
 import 'package:build_access/features/history_feature/history_feature.dart';
 import 'package:build_access/models/history/history_model.dart';
-import 'package:build_access/providers/user_profile_provider.dart';
+import 'package:build_access/models/vision_assistant/vision_assistant_input.dart';
 import 'dart:developer' as developer_log;
 import 'package:get/get.dart';
 import 'package:build_access/providers/voice_interaction_provider.dart';
 
 class CommandRouter {
   final SettingOrchestrator _settingOrchestrator = getIt<SettingOrchestrator>();
-  final AIOrchestrator _aiEngine = getIt<AIOrchestrator>();
+  final VisionAssistantEngine _visionAssistantEngine = getIt<VisionAssistantEngine>();
   final VoiceInteractionProvider _voice = getIt<VoiceInteractionProvider>();
   final HistoryEngine _historyEngine = getIt<HistoryEngine>();
   bool settingCheck(IntentType intentType) {
@@ -29,24 +28,12 @@ class CommandRouter {
         await _voice.speak('voice_require_scan_first'.tr);
         return false;
       }
-      final Stream<String> aiStream = _aiEngine.executeAiTask(
-        type: type,
-        data: latest != null ? jsonEncode(latest.toMap()) : "",
-        history: "",
-        userProfile: getIt<UserProfileProvider>().userProfile.toString(),
-        userText: userChat,
-      );
 
-      StringBuffer buffer = StringBuffer();
-      await for (final chunk in aiStream) {
-        try {
-          final Map<String, dynamic> map = jsonDecode(chunk);
-          if (map.containsKey('text')) buffer.write(map['text']);
-        } catch (e) {
-          buffer.write(chunk);
-        }
-      }
-      await _voice.speak(buffer.toString());
+      VisionAssistantInput visionAssistantInput  = VisionAssistantInput(type: type, userRequest: userChat);
+
+       await _visionAssistantEngine.process(
+        visionAssistantInput
+      );
       return true;
     } catch (e) {
       developer_log.log("Lỗi $e", name: "CommandRouter");

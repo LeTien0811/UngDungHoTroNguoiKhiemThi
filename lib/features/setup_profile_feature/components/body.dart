@@ -59,10 +59,6 @@ class _BodyState extends State<Body> {
             ),
           ),
 
-          ButtonActionMicroWidget(
-            onLongPressedStart: widget.model.startRecording,
-            onLongPressedEnd: widget.model.stopRecordingAndProcess,
-          ),
 
           if (widget.model.isHolding || widget.model.isAiProcessing)
             Positioned(
